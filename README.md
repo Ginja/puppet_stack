@@ -2,6 +2,8 @@
 
 ##Overview
 
+[![Build Status](https://travis-ci.org/Ginja/puppet_stack.svg?branch=master)](https://travis-ci.org/Ginja/puppet_stack)
+
 This module will help you configure and manage your Puppet infrastructure. Specifically the following:
 
 * Puppet Master
