@@ -1,0 +1,40 @@
+#####################
+# MANAGED BY PUPPET #
+#####################
+
+<VirtualHost *:<%= @smartp_port %>>
+  ServerName <%= @smartp_vhost_server_name %>
+
+  SSLEngine On
+
+  # Only allow high security cryptography. Alter if needed for compatibility.
+  SSLProtocol              All -SSLv2
+  SSLCipherSuite           HIGH:!ADH:RC4+RSA:-MEDIUM:-LOW:-EXP
+  SSLCertificateFile       <%= @smartp_ssl_cert %>
+  SSLCertificateKeyFile    <%= @smartp_ssl_key %>
+  SSLCACertificateFile     <%= @smartp_ssl_ca%>
+
+  AddDefaultCharset UTF-8
+
+  DocumentRoot <%= "#{@smartp_app_dir}/public" %>
+
+  <Directory <%= "#{@smartp_app_dir}/public" %>>
+    Options None
+    AllowOverride None
+    # Apply the right behavior depending on Apache version.
+    <IfVersion < 2.4>
+      Order allow,deny
+      Allow from all
+    </IfVersion>
+    <IfVersion >= 2.4>
+      Require all granted
+    </IfVersion>
+  </Directory>
+
+  <%- @smartp_vhost_options.each do |key, value| -%>
+  <%= "#{key} #{value}" %>
+  <%- end -%>
+
+  ErrorLog /var/log/httpd/smart-proxy_error.log
+  CustomLog /var/log/httpd/smart-proxy_access.log combined
+</VirtualHost>

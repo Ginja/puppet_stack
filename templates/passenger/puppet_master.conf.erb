@@ -1,0 +1,53 @@
+#####################
+# MANAGED BY PUPPET #
+#####################
+
+<VirtualHost *:8140>
+    SSLEngine On
+
+    # Only allow high security cryptography. Alter if needed for compatibility.
+    SSLProtocol             All -SSLv2
+    SSLCipherSuite          HIGH:!ADH:RC4+RSA:-MEDIUM:-LOW:-EXP
+    SSLCertificateFile      <%= @puppet_ssl_cert %>
+    SSLCertificateKeyFile   <%= @puppet_ssl_key %>
+    SSLCertificateChainFile <%= @puppet_ssl_chain %>
+    SSLCACertificateFile    <%= @puppet_ssl_ca %>
+    <%- unless @puppet_role == 'catalog' -%>
+    SSLCARevocationFile     <%= @puppet_ssl_ca_revoc %>
+    <%- end -%>
+    SSLVerifyClient         optional
+    SSLVerifyDepth          1
+    SSLOptions              +StdEnvVars +ExportCertData
+
+    # This header needs to be set if using a loadbalancer or proxy
+    RequestHeader unset X-Forwarded-For
+
+    # These request headers are used to pass the client certificate
+    # authentication information on to the puppet master process
+    RequestHeader set X-SSL-Subject %{SSL_CLIENT_S_DN}e
+    RequestHeader set X-Client-DN %{SSL_CLIENT_S_DN}e
+    RequestHeader set X-Client-Verify %{SSL_CLIENT_VERIFY}e
+
+    PassengerAppRoot <%= @puppet_passenger_app_root %>
+    DocumentRoot <%= @puppet_passenger_doc_root %>
+
+    <Directory <%= @puppet_passenger_app_root %>>
+      Options None
+      AllowOverride None
+      # Apply the right behavior depending on Apache version.
+      <IfVersion < 2.4>
+        Order allow,deny
+        Allow from all
+      </IfVersion>
+      <IfVersion >= 2.4>
+        Require all granted
+      </IfVersion>
+    </Directory>
+
+    <%- @puppet_vhost_options.each do |key, value| -%>
+    <%= "#{key} #{value}" %>
+    <%- end -%>
+
+    ErrorLog /var/log/httpd/puppet_master_ssl_error.log
+    CustomLog /var/log/httpd/puppet_master_ssl_access.log combined
+</VirtualHost>

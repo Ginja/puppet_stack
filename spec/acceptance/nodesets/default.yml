@@ -1,0 +1,12 @@
+HOSTS:
+  centos-65-x64:
+    roles:
+      - master
+    platform: el-6-x86_64
+    box : ginja/centos-6.5-x64-rvm-ruby2.0.0-puppet
+    hypervisor : vagrant
+CONFIG:
+  log_level: debug
+  type: git
+  nfs_server: none
+  consoleport: 443

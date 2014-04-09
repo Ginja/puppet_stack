@@ -1,0 +1,31 @@
+#####################
+# MANAGED BY PUPPET #
+#####################
+
+[main]
+    <%- @conf_main.each do |key, value| -%>
+    <%= "#{key} = #{value}" %>
+    <%- end -%>
+
+[agent]
+    <%- @conf_agent.each do |key, value| -%>
+    <%= "#{key} = #{value}" %>
+    <%- end -%>
+
+[master]
+    <%- @conf_master.each do |key, value| -%>
+    <%= "#{key} = #{value}" %>
+    <%- end -%>
+    <%- if @use_foreman_as_an_enc -%>
+    external_nodes = /etc/puppet/node.rb
+    node_terminus = exec
+    <%- end -%>
+
+<% unless @puppet_role == 'ca' -%>
+<%- @conf_envs.each do |env| -%>
+<%= "[#{env[0]}]" %>
+<%- env[1].each do |key, value| -%>
+    <%= "#{key} = #{value}" %>
+<% end %>
+<% end %>
+<%- end -%>

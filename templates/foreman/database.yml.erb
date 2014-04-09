@@ -1,0 +1,9 @@
+#####################
+# MANAGED BY PUPPET #
+#####################
+<%- @foreman_db_config.each do |env| -%>
+<%= "#{env[0]}:" %>
+<%- env[1].each do |key, value| -%>
+    <%= "#{key}: #{value}" %>
+<% end %>
+<%- end -%>

@@ -1,0 +1,68 @@
+#####################
+# MANAGED BY PUPPET #
+#####################
+
+<VirtualHost *:443>
+  ServerName               <%= @foreman_vhost_server_name %>
+
+  SSLEngine On
+  SSLProtocol              All -SSLv2
+  SSLCipherSuite           HIGH:!ADH:RC4+RSA:-MEDIUM:-LOW:-EXP
+  SSLCertificateFile       <%= @foreman_ssl_cert %>
+  SSLCertificateKeyFile    <%= @foreman_ssl_key %>
+  SSLCACertificateFile     <%= @foreman_ssl_ca %>
+  SSLVerifyClient          optional
+  SSLOptions               +StdEnvVars
+  SSLVerifyDepth           3
+
+  DocumentRoot <%= "#{@foreman_app_dir}/public" %>
+  AddDefaultCharset UTF-8
+
+  # Static public dir serving
+  <Directory <%= "#{@foreman_app_dir}/public" %>>
+    <IfVersion < 2.4>
+      Allow from all
+    </IfVersion>
+    <IfVersion >= 2.4>
+      Require all granted
+    </IfVersion>
+  </Directory>
+
+  <Directory <%= "#{@foreman_app_dir}/public/assets" %>>
+    # Use standard http expire header for assets instead of ETag
+    <IfModule mod_expires.c>
+      Header unset ETag
+      FileETag None
+      ExpiresActive On
+      ExpiresDefault "access plus 1 year"
+    </IfModule>
+
+    # Return compressed assets if they are precompiled
+    <IfModule mod_rewrite.c>
+      RewriteEngine on
+      # Make sure the browser supports gzip encoding and file with .gz added
+      # does exist on disc before we rewrite with the extension
+      RewriteCond %{HTTP:Accept-Encoding} \b(x-)?gzip\b
+      RewriteCond %{REQUEST_FILENAME}.gz -s
+      RewriteRule ^(.+) $1.gz [L]
+      # Set headers for all possible assets which are compressed
+      <FilesMatch \.css\.gz$>
+        ForceType text/css
+        Header set Content-Encoding gzip
+        SetEnv no-gzip
+      </FilesMatch>
+      <FilesMatch \.js\.gz$>
+        ForceType text/javascript
+        Header set Content-Encoding gzip
+        SetEnv no-gzip
+      </FilesMatch>
+    </IfModule>
+  </Directory>
+
+  <%- @foreman_vhost_options.each do |key, value| -%>
+  <%= "#{key} #{value}" %>
+  <%- end -%>
+
+  ErrorLog /var/log/httpd/foreman_ssl_error.log
+  CustomLog /var/log/httpd/foreman_ssl_access.log combined
+</VirtualHost>

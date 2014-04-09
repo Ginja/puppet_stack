@@ -1,0 +1,5 @@
+#####################
+# MANAGED BY PUPPET #
+#####################
+Defaults:<%= @smartp_user %> !requiretty
+<%= @smartp_user %> ALL = NOPASSWD: <%= @smartp_user_home %>/smart-proxy/vendor/ruby/<%= scope['::rubyversion'] %>/bin/puppet, /usr/bin/env

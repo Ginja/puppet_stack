@@ -1,0 +1,9 @@
+---
+#####################
+# MANAGED BY PUPPET #
+#####################
+# You must restart the web app after changing any of these values
+# because they are cached at startup.
+<%- @foreman_settings.each do | key, value | -%>
+<%= "#{key}: #{value}" %>
+<%- end %>

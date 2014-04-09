@@ -1,0 +1,15 @@
+#####################
+# MANAGED BY PUPPET #
+#####################
+
+LoadModule passenger_module <%= @rvm_prefix.chomp('/') %>/gems/<%= @ruby_vers %>/gems/passenger-<%= @passenger_vers %>/buildout/apache2/mod_passenger.so
+<IfModule mod_passenger.c>
+  PassengerRoot <%= @rvm_prefix.chomp('/') %>/gems/<%= @ruby_vers %>/gems/passenger-<%= @passenger_vers.chomp %>
+  PassengerDefaultRuby <%= @rvm_prefix.chomp('/') %>/gems/<%= @ruby_vers %>/wrappers/ruby
+  <%- unless @global_passenger_options.empty? -%>
+  <%= "# CUSTOM PASSENGER SETTINGS #" %>
+  <%- @global_passenger_options.each do |key, value| -%>
+  <%= "#{key} #{value}" %>
+  <%- end -%>
+  <%- end -%>
+</IfModule>
