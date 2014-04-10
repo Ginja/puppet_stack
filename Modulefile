@@ -1,14 +1,18 @@
 name    'ginja-puppet_stack'
-version '0.0.2'
+version '0.0.3'
 source 'git://github.com/Ginja/puppet_stack.git'
 author 'rshott'
 license 'Apache License, Version 2.0'
-summary 'Puppet module for managing foreman, smart-proxy, and a puppet master'
-description 'Module for installing and managing Puppet, The Foreman, & smart-proxy'
+summary 'Install and manage a Puppet Master, The Foreman, and smart-proxy'
+description "This module will help you install, and manage the following:
+
+* A Puppet Master
+* The Foreman
+* smart-proxy"
 project_page 'https://github.com/Ginja/puppet_stack'
 
-dependency 'puppetlabs/apache', '>=1.0.0'
-dependency 'puppetlabs/concat', '>= 1.0.0 <2.0.0'
-dependency 'puppetlabs/postgresql', '>= 3.1.0 <4.0.0'
+dependency 'puppetlabs/apache', '1.x.x'
+dependency 'puppetlabs/concat', '1.x.x'
+dependency 'puppetlabs/postgresql', '3.x.x'
 dependency 'maestrodev-rvm', '1.5.x'
 dependency 'puppetlabs/stdlib', '>=3.2.0 <5.0.0'
