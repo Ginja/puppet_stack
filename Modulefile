@@ -1,5 +1,5 @@
-name    'ginja-puppet_stack'
-version '0.0.3'
+name    'Ginja-puppet_stack'
+version '0.0.4'
 source 'git://github.com/Ginja/puppet_stack.git'
 author 'rshott'
 license 'Apache License, Version 2.0'
@@ -11,8 +11,8 @@ description "This module will help you install, and manage the following:
 * smart-proxy"
 project_page 'https://github.com/Ginja/puppet_stack'
 
-dependency 'puppetlabs/apache', '1.x.x'
-dependency 'puppetlabs/concat', '1.x.x'
-dependency 'puppetlabs/postgresql', '3.x.x'
+dependency 'puppetlabs/apache', '1.x'
+dependency 'puppetlabs/concat', '1.x'
+dependency 'puppetlabs/postgresql', '3.x'
 dependency 'maestrodev-rvm', '1.5.x'
 dependency 'puppetlabs/stdlib', '>=3.2.0 <5.0.0'
