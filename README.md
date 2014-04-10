@@ -53,9 +53,9 @@ You can easily include all of this in a kickstart script, or do it yourself manu
 
 This module is quite dependent on other modules, which is not best practice, but it sure is convenient and extremely hard to avoid. The current module dependency list is:
 
-* dependency 'puppetlabs/apache', '>=1.0.0'
-* dependency 'puppetlabs/concat', '>= 1.0.0 <2.0.0'
-* dependency 'puppetlabs/postgresql', '>= 3.1.0 <4.0.0'
+* dependency 'puppetlabs/apache', '1.x'
+* dependency 'puppetlabs/concat', '1.x'
+* dependency 'puppetlabs/postgresql', '3.x'
 * dependency 'maestrodev-rvm', '1.5.x'
 * dependency 'puppetlabs/stdlib', '>=3.2.0 <5.0.0'
 
@@ -81,7 +81,7 @@ setenforce 0
 # Create some temporary holding directories
 mkdir -p ~/puppet/modules ~/puppet/manifests
 # Install this module, and any other modules you require
-puppet module install ginja-puppet_stack --target-dir ~/puppet/modules
+puppet module install Ginja-puppet_stack --target-dir ~/puppet/modules
 # Create a site.pp that contains the Puppet resources you want to apply
 vi ~/puppet/manifests/site.pp
 # Apply the manifest
@@ -692,7 +692,7 @@ mkdir -p ~/vagrant/puppet_stack && cd !$
 vagrant init ginja/centos-6.5-x64-rvm-ruby2.0.0-puppet
 mkdir modules manifests
 touch manifests/site.pp
-sudo puppet module install ginja-puppet_stack --target-dir ./modules
+sudo puppet module install Ginja-puppet_stack --target-dir ./modules
 ```
 
 Edit the Vagrantfile like so:
