@@ -63,9 +63,11 @@ class puppet_stack (
 ) inherits puppet_stack::params {
   validate_re($ruby_vers, 'ruby-\d[.]\d[.]\d-p\d\d\d', 'The ruby_vers parameter did not match a valid Ruby version (ex: \'ruby-2.0.0-p451\')')
   validate_re($passenger_vers, '\d[.]\d[.]\d+', 'The passenger_vers parameter must be numerical (ex: \'4.0.40\')')
+  validate_string($apache_user)
+  validate_string($http_dir)
   validate_string($rvm_prefix)
   validate_string($bundler_vers)
-  validate_string($passenger_vers)
+  validate_string($rack_vers)
   validate_hash($global_passenger_options)
   # PUPPET #
   validate_bool($puppet)
