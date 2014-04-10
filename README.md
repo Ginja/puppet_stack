@@ -1,16 +1,30 @@
 #puppet_stack
 
-##Overview
-
 [![Build Status](https://travis-ci.org/Ginja/puppet_stack.svg?branch=master)](https://travis-ci.org/Ginja/puppet_stack)
 
-This module will help you configure and manage your Puppet infrastructure. Specifically the following:
+##Table of Contents
 
-* Puppet Master
+1. [Overview - What does this module do?](#overview)
+2. [Requirements - What does this module require?](#requirements)
+3. [Usage - How do I use this module?](#usage)
+  * [Sample Configurations - Resource examples](#sample configurations)
+4. [Parameters - A definition of each module parameter](#parameters)
+5. [Additional Notes - Things to be aware of](#additional notes)
+6. [Development - What you need to know to contribute](#development)
+  * [Versioning](#versioning)
+  * [Branching](#branching)
+  * [Testing](#testing)
+  * [Vagrant](#vagrant)
+
+##Overview
+
+This module will help you install, and manage the following:
+
+* A Puppet Master
 * The Foreman
 * smart-proxy
 
-Where it differs is that it does so using git repos and gems instead of yum packages. What this offers is a greater degree of modularity, and full control when performing upgrades.
+Where it differs from other similar modules is that it does so using git repos and gems instead of yum packages. What this offers is a greater degree of modularity, and control when performing upgrades.
 
 This module also understands that a Puppet Master can have different roles:
 
@@ -19,23 +33,23 @@ This module also understands that a Puppet Master can have different roles:
 3. A Puppet CA server (ca), which is a Puppet Master that only manages client certificates.
 
 ##Requirements
-Before you use this module, you'll require a machine with the following:
+Before you use this module, you'll require a machine with the following pre-installed:
 
 * [System-wide RVM installation](https://rvm.io/)
 ```bash
 curl -sSL https://get.rvm.io | sudo bash -s stable
 ```
-* An RVM Ruby installation set as default (has to be higher than 1.8.{6,7})
+* An RVM Ruby installation (> 1.8.{6,7}), which has been set as the system default:
 ```bash
 rvm install ruby-2.0.0
 rvm alias create default ruby-2.0.0
 ```
-* Puppet Gem (3.4.0+) for that RVM Ruby installation
+* Puppet Gem (3.4.0+) for that RVM Ruby installation:
 ```bash
 gem install puppet
 ```
 
-You can easily include all of this in a kickstart script, or do it yourself after your machine is up.
+You can easily include all of this in a kickstart script, or do it yourself manually.
 
 This module is quite dependent on other modules, which is not best practice, but it sure is convenient and extremely hard to avoid. The current module dependency list is:
 
@@ -48,12 +62,12 @@ This module is quite dependent on other modules, which is not best practice, but
 At this time, this module is only compatible with the RedHat OS family (i.e. RHEL, CentOS, Scientific Linux, etc..).
 
 ##Usage
-This module has a lot of parameters to help you configure the finer details of each application stack, and there are only two required parameters: 
+This module has a lot of parameters to help you configure the finer details for each application. There are only two required parameters: 
 
 * ruby_vers, the value of which should be what RVM Ruby version you've installed
 * passenger_vers, the value of which should be the version of Passenger you want to install
 
-If you want to use this module on a production system, you'll have to rig a kickstart script to apply it, or do it manually:
+This module will most likely be the the first thing you run on a Puppet Master. The following is an example of how you may want to do that:
 
 ```bash
 # Get a root shell
@@ -62,20 +76,46 @@ sudo su -
 ruby --version
 # Check that you're using the Puppet binary from the Puppet gem
 which puppet
+# Set SELINUX to permissive
+setenforce 0
+# Create some temporary holding directories
 mkdir -p ~/puppet/modules ~/puppet/manifests
+# Install this module, and any other modules you require
 puppet module install ginja-puppet_stack --target-dir ~/puppet/modules
-touch ~/puppet/manifests/site.pp
-# Edit site.pp
+# Create a site.pp that contains the Puppet resources you want to apply
 vi ~/puppet/manifests/site.pp
-puppet apply --verbose --debug --modulepath ~/puppet/modules --manifestdir ~/puppet/manifests --detailed-exitcodes ~/puppet/manifests/puppet_stack.pp
+# Apply the manifest
+puppet apply --verbose --modulepath ~/puppet/modules --manifestdir ~/puppet/manifests --detailed-exitcodes ~/puppet/manifests/site.pp
 ```
 
-Below are some sample configurations:
+This module assumes SELINUX will be set to permissive. However, if you want to use it with SELINUX set to enforcing, you should follow the above instructions, and then do the following:
+
+1. Install the management utilities for SELINUX
+```bash
+yum install policycoreutils-python
+```
+2. Start using your new stack (ex: access URLs, add a client, sign a certificate, etc...)
+3. Generate a new SELINUX policy module
+```bash
+grep httpd /var/log/audit/audit.log | audit2allow -M puppet
+```
+4. Apply the policy module
+```bash
+semodule -i puppet.pp
+```
+5. Set SELINUX back to enforcing
+```bash
+setenforce 1
+```
+
+This should certainly help, but you may find that additional SELINUX adjustments are required. Use `chcon`, or try your hand at applying another policy module.
+
+###Sample Configurations
 
 An all-in-one Puppet Master, with the Foreman, and smart-proxy:
 
 ```puppet
-# ruby_vers must be specified with a patch number)
+# ruby_vers must be specified with a patch number
 class { 'puppet_stack':
   ruby_vers      => 'ruby-2.0.0-p451',
   passenger_vers => '4.0.40',
@@ -90,17 +130,20 @@ class { 'puppet_stack':
   passenger_vers => '4.0.40',
   puppet_role    => 'ca',
   foreman        => false,
+  smart_proxy    => true,
 }
 ```
 
-A Puppet Catalog Master, with the Foreman. When bringing up a Catalog Master, you must specify where your CA server is using ca_server. In this example below, we assume puppet-ca.fqdn.here.com is our CA server, and that it will autosign our Catalog Master's certificate.
+A Puppet Catalog Master, with the Foreman. 
+
+When bringing up a Catalog Master, you must set the ca_server attribute to the FQDN of your Puppet CA server. In the example below, we assume puppet-ca.domain.here.com is our CA server, and that it contains an autosign entry for our Catalog Master. If you do not wish to use autosigning, set catalog_cert_autosign to false, configure the certificate for your Catalog Master manually after the first Puppet run, and then start a second Puppet run.
 
 ```puppet
 class { 'puppet_stack':
   ruby_vers             => 'ruby-2.0.0-p451',
   passenger_vers        => '4.0.40',
   puppet_role           => 'catalog',
-  ca_server             => 'puppet-ca.fqdn.here.com',
+  ca_server             => 'puppet-ca.domain.here.com',
   catalog_cert_autosign => true,
   smart_proxy           => false,
 }
@@ -108,73 +151,74 @@ class { 'puppet_stack':
 
 Here's an advance example. Let's say we want to scale out our Puppet infrastructure:
 
-* x1 Puppet CA server (puppet-ca.fqdn.com)
-* x2 Puppet Catalog Masters (puppet-pm{1,2}.fqdn.com) behind your local load balancer
+* x1 Puppet CA server (puppet-ca.domain.com)
+* x2 Puppet Catalog Masters (puppet-pm{1,2}.domain.com), possibly behind a load balancer
 
-One of the Catalog Masters will include the Foreman, and the other will simply upload it's client's facts & reports to that Foreman instance. The Puppet CA server will include smart-proxy, which the Foreman can use (configured manually from within the application).
+One of the Catalog Masters will include the Foreman, and the other will simply upload its client's facts & reports to it. The Puppet CA server will include smart-proxy, which the Foreman can use (has to be configured manually from within the application).
 
-Order of execution is key here. The Puppet CA server will need to come up first if you're attempting to autosign your Puppet Catalog Masters' certificate. Otherwise if you try to bring up your Catalog Masters first, and catalog_cert_autosign is set to true, they will not come up properly. It's nothing you can't recover from (just bring up your CA server, and run Puppet again on each Catalog Master), but I think we all can agree that it's better when things just work the first time.
+Order of execution is key here. The Puppet CA server will need to come up first if you're attempting to autosign your Puppet Catalog Masters' certificate. Otherwise if you try to bring up your Catalog Masters first, and catalog_cert_autosign is set to true, they will not come up properly. It's nothing you can't recover from (just bring up your CA server, ensure autosign is configured, and run Puppet again on each Catalog Master), but I think we all can agree that it's better when things just work the first time.
 
-#####puppet-ca.fqdn.com
+#####puppet-ca.domain.com
 
 ```puppet
+# If you specify custom smartp_settings, do not forget to precede each setting key with a ':'
 class { 'puppet_stack':
   ruby_vers        => 'ruby-2.0.0-p451',
   passenger_vers   => '4.0.40',
   puppet_role      => 'ca',
-  autosign_entries => ['puppet-pm1.fqdn.com', 'puppet-pm2.fqdn.com'],
+  autosign_entries => ['puppet-pm1.domain.com', 'puppet-pm2.domain.com'],
   foreman          => false,
   smartp_port      => '8443',
   smartp_settings  => {
-                        ':trusted_hosts'   => ['puppet-pm1.fqdn.com', 'puppet-pm2.fqdn.com'],
-                        ':daemon'          => true,
-                        ':port'            => '8443',
-                        ':use_rvmsudo'     => true, # Absolutely required, see additional notes
-                        ':tftp'            => false,
-                        ':dns'             => false,
-                        ':puppetca'        => true,
-                        ':ssldir'          => '/var/lib/puppet/ssl',
-                        ':puppetdir'       => '/etc/puppet',
-                        ':puppet'          => false,
-                        ':chefproxy'       => false,
-                        ':bmc'             => false,
-                        ':log_file'        => '/usr/share/smartproxy/smart-proxy/log/app.log', # The default location
-                        ':log_level'       => 'ERROR'
-                      }
+    ':trusted_hosts'   => ['puppet-pm1.domain.com', 'puppet-pm2.domain.com'],
+    ':daemon'          => true,
+    ':port'            => '8443',
+    ':use_rvmsudo'     => true, # Absolutely required, see additional notes
+    ':tftp'            => false,
+    ':dns'             => false,
+    ':puppetca'        => true,
+    ':ssldir'          => '/var/lib/puppet/ssl',
+    ':puppetdir'       => '/etc/puppet',
+    ':puppet'          => false,
+    ':chefproxy'       => false,
+    ':bmc'             => false,
+    ':log_file'        => '/usr/share/smartproxy/smart-proxy/log/app.log', # The default location
+    ':log_level'       => 'ERROR'
+  }
 }
 ```
 
-#####puppet-pm1.fqdn.com
+#####puppet-pm1.domain.com
 
 ```puppet
 class { 'puppet_stack':
   ruby_vers             => 'ruby-2.0.0-p451',
   passenger_vers        => '4.0.40',
   puppet_role           => 'catalog',
-  ca_server             => 'puppet-ca.fqdn.com',
+  ca_server             => 'puppet-ca.domain.com',
   catalog_cert_autosign => true,
   foreman               => true,
   smartproxy            => false,
 }
 ```
-#####puppet-pm2.fqdn.com
+
+#####puppet-pm2.domain.com
 
 ```puppet
 class { 'puppet_stack':
   ruby_vers             => 'ruby-2.0.0-p451',
   passenger_vers        => '4.0.40',
   puppet_role           => 'catalog',
-  ca_server             => 'puppet-ca.fqdn.com',
+  ca_server             => 'puppet-ca.domain.com',
   catalog_cert_autosign => true,
   use_foreman_as_an_enc => true,
-  foreman_url           => 'https://puppet-pm1.fqdn.com',
+  foreman_url           => 'https://puppet-pm1.domain.com',
   foreman_upload_facts  => true,
   report_to_foreman     => true,
   foreman               => false,
   smartproxy            => false,
 }
 ```
-
 
 ##Parameters
 
@@ -610,10 +654,10 @@ The SSL ca file that smart-proxy will use. This value defaults to the one that P
 ###Versioning
 This module uses [Semantic Versioning](http://semver.org/).
 
-###Contributing
+###Branching
 Please adhere to the branching guidelines set out by Vincent Driessen in this [post](http://nvie.com/posts/a-successful-git-branching-model/).
 
-###Tests
+###Testing
 This module uses [rspec-puppet](http://rspec-puppet.com), [beaker-rspec](https://github.com/puppetlabs/beaker-rspec), and [Beaker](https://github.com/puppetlabs/beaker) for testing.
 
 To run the rspec-puppet tests:
@@ -683,18 +727,43 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 end
 ```
 
-Modify manifests/site.pp to whatever you want to test:
+Modify manifests/site.pp, and add the resource you want to test:
 
 ```puppet
 class { 'puppet_stack':
-  ruby_vers      => 'ruby-2.0.0-p451',
-  passenger_vers => '4.0.40', 
+  ruby_vers                => 'ruby-2.0.0-p451',
+  passenger_vers           => '4.0.37',
+  global_passenger_options => {
+    'PassengerDefaultUser'        => 'apache',
+    'PassengerFriendlyErrorPages' => 'on',
+    'PassengerMinInstances'       => '2'
+  },
+  puppet_role              => 'ca',
+  foreman                  => false,
+  autosign_entries         => ['puppet-pm1.domain.com', 'puppet-pm2.domain.com'],
+  smartp_settings          => {
+    ':trusted_hosts'   => [ 'puppet-pm1.domain.com', 'puppet-pm2.domain.com' ],
+    ':daemon'          => true,
+    ':port'            => '8443',
+    ':use_rvmsudo'     => true,
+    ':tftp'            => false,
+    ':dns'             => false,
+    ':puppetca'        => true,
+    ':ssldir'          => '/var/lib/puppet/ssl',
+    ':puppetdir'       => '/etc/puppet',
+    ':puppet'          => false,
+    ':chefproxy'       => false,
+    ':bmc'             => false,
+    ':log_file'        => '/usr/share/smartproxy/smart-proxy/log/app.log',
+    ':log_level'       => 'ERROR'
+  }
 }
 ```
-And finally bring up the box, and watch the magic happen:
+
+Bring up the box, and watch the magic happen:
 
 ```bash
 vagrant up
 ```
 
-The [ginja/centos-6.5-x64-rvm-ruby2.0.0-puppet](https://vagrantcloud.com/ginja/centos-6.5-x64-rvm-ruby2.0.0-puppet) file is hosted from my Dropbox account, so there is a 20GB/day bandwidth limit. While it's unlikely that this threshold will ever be reached, if you do find yourself unable to download this box, you may need to try again the next day.
+The [ginja/centos-6.5-x64-rvm-ruby2.0.0-puppet](https://vagrantcloud.com/ginja/centos-6.5-x64-rvm-ruby2.0.0-puppet) box is hosted from my Dropbox account, so there is a 20GB/day bandwidth limit. While it's unlikely that this threshold will ever be reached, if you do find yourself unable to download this box, you may need to try again the next day.
