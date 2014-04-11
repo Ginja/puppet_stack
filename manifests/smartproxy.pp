@@ -31,9 +31,9 @@ class puppet_stack::smartproxy {
   }
   if ($::puppet_stack::smartp_ssl_ca== '') {
     $smartp_ssl_ca= $::puppet_stack::puppet_role ? {
-        'catalog' => '/var/lib/puppet/ssl/certs/ca.pem',
-        default   => '/var/lib/puppet/ssl/ca/ca_crt.pem',
-      }
+      'catalog' => '/var/lib/puppet/ssl/certs/ca.pem',
+      default   => '/var/lib/puppet/ssl/ca/ca_crt.pem',
+    }
   }
   else {
     $smartp_ssl_ca= $::puppet_stack::smartp_ssl_ca

@@ -4,29 +4,25 @@ class puppet_stack::puppet {
   $puppet_role       = $::puppet_stack::puppet_role
   $cert_name         = $::puppet_stack::cert_name
   $ca_server         = $::puppet_stack::ca_server
-  if ($foreman == true) {
-      $log = $report_to_foreman ? {
-        true  => 'log, foreman',
-        false => 'log'
-      }
+  $log               = $report_to_foreman ? {
+    true  => 'log, foreman',
+    false => 'log'
   }
-  else {
-    $log = 'log'
-  }
+
   if ($::puppet_stack::puppet_ssl_chain == '') {
     $puppet_ssl_chain = $puppet_role ? {
-        'catalog' => '/var/lib/puppet/ssl/certs/ca.pem',
-        default  => '/var/lib/puppet/ssl/ca/ca_crt.pem',
-      }
+      'catalog' => '/var/lib/puppet/ssl/certs/ca.pem',
+      default  => '/var/lib/puppet/ssl/ca/ca_crt.pem',
+    }
   }
   else {
     $puppet_ssl_chain = $::puppet_stack::puppet_ssl_chain
   }
   if ($::puppet_stack::puppet_ssl_ca == '') {
     $puppet_ssl_ca = $puppet_role ? {
-        'catalog' => '/var/lib/puppet/ssl/certs/ca.pem',
-        default  => '/var/lib/puppet/ssl/ca/ca_crt.pem',
-      }
+      'catalog' => '/var/lib/puppet/ssl/certs/ca.pem',
+      default  => '/var/lib/puppet/ssl/ca/ca_crt.pem',
+    }
   }
   else {
     $puppet_ssl_ca = $::puppet_stack::puppet_ssl_ca
@@ -41,56 +37,56 @@ class puppet_stack::puppet {
   }
   # Puppet can't support hash literals in selectors yet...
   # https://projects.puppetlabs.com/issues/14301
-  # If ssldir is not $vardir/ssl, you'll need to manually specify all puppet_ssl_* params manually
+  # You'll need to specify all puppet_ssl_* params, if ssldir is not $vardir/ssl
   $_empty_hash             = {}
   $_conf_main_catalog      = {
-                               'ssldir'        => '$vardir/ssl',
-                               'logdir'        => '/var/log/puppet',
-                               'privatekeydir' => '$ssldir/private_keys { group = service }',
-                               'hostprivkey'   => '$privatekeydir/$certname.pem { mode = 640 }',
-                               'ca_server'     => $ca_server
-                             }
+    'ssldir'        => '$vardir/ssl',
+    'logdir'        => '/var/log/puppet',
+    'privatekeydir' => '$ssldir/private_keys { group = service }',
+    'hostprivkey'   => '$privatekeydir/$certname.pem { mode = 640 }',
+    'ca_server'     => $ca_server
+  }
   $_conf_main_aio_ca       = {
-                               'ssldir'        => '$vardir/ssl',
-                               'logdir'        => '/var/log/puppet',
-                               'privatekeydir' => '$ssldir/private_keys { group = service }',
-                               'hostprivkey'   => '$privatekeydir/$certname.pem { mode = 640 }'
-                             }
+    'ssldir'        => '$vardir/ssl',
+    'logdir'        => '/var/log/puppet',
+    'privatekeydir' => '$ssldir/private_keys { group = service }',
+    'hostprivkey'   => '$privatekeydir/$certname.pem { mode = 640 }'
+  }
   $_conf_agent_aio_catalog = {
-                               'classfile'   => '$vardir/classes.txt',
-                               'localconfig' => '$vardir/localconfig',
-                               'report'      => true,
-                               'listen'      => false,
-                               'pluginsync'  => true,
-                               'certname'    => $cert_name,
-                               'server'      => $cert_name
-                             }
+    'classfile'   => '$vardir/classes.txt',
+    'localconfig' => '$vardir/localconfig',
+    'report'      => true,
+    'listen'      => false,
+    'pluginsync'  => true,
+    'certname'    => $cert_name,
+    'server'      => $cert_name
+  }
   $_conf_agent_ca          = {
-                               'classfile'   => '$vardir/classes.txt',
-                               'localconfig' => '$vardir/localconfig',
-                               'report'      => true,
-                               'listen'      => false,
-                               'pluginsync'  => true,
-                               'certname'    => $cert_name
-                             }
+    'classfile'   => '$vardir/classes.txt',
+    'localconfig' => '$vardir/localconfig',
+    'report'      => true,
+    'listen'      => false,
+    'pluginsync'  => true,
+    'certname'    => $cert_name
+  }
   $_conf_master_aio        = {
-                               'modulepath' => '$confdir/modules',
-                               'ca'         => true,
-                               'certname'   => $cert_name,
-                               'autosign'   => '/etc/puppet/autosign.conf',
-                               'reports'    => $log
-                             }
+    'modulepath' => '$confdir/modules',
+    'ca'         => true,
+    'certname'   => $cert_name,
+    'autosign'   => '/etc/puppet/autosign.conf',
+    'reports'    => $log
+  }
   $_conf_master_catalog    = {
-                               'modulepath' => '$confdir/modules',
-                               'ca'         => false,
-                               'certname'   => $cert_name,
-                               'reports'    => $log
-                             }
+    'modulepath' => '$confdir/modules',
+    'ca'         => false,
+    'certname'   => $cert_name,
+    'reports'    => $log
+  }
   $_conf_master_ca         = {
-                               'ca'         => true,
-                               'certname'   => $cert_name,
-                               'autosign'   => '/etc/puppet/autosign.conf'
-                             }
+    'ca'         => true,
+    'certname'   => $cert_name,
+    'autosign'   => '/etc/puppet/autosign.conf'
+  }
 
   if ($::puppet_stack::conf_main == {}) {
       $conf_main = $puppet_role ? {
@@ -128,13 +124,13 @@ class puppet_stack::puppet {
   if ($::puppet_stack::conf_envs == []) {
       $conf_envs = $puppet_role ? {
         /^(aio|catalog)$/ => [
-                               [ 'production', { 'manifest' => '$confdir/manifests/site.pp' } ],
-                               [ 'development', { 'manifest' => '$confdir/manifests/site.pp' } ]
-                             ],
+          [ 'production', { 'manifest' => '$confdir/manifests/site.pp' } ],
+          [ 'development', { 'manifest' => '$confdir/manifests/site.pp' } ]
+        ],
         default           => [],
       }
   }
-  else{
+  else {
     $conf_envs = $::puppet_stack::conf_envs
   }
 
