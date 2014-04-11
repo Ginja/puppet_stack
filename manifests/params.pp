@@ -43,6 +43,8 @@ class puppet_stack::params {
   $foreman_db_adapter        = 'sqlite3'
   $foreman_db_host           = 'localhost'
   $foreman_db_name           = 'foreman'
+  $foreman_db_pool           = '25'
+  $foreman_db_timeout        = '5000'
   $foreman_db_user           = 'foreman'
   $foreman_vhost_server_name = $::fqdn
   $foreman_url               = "https://${::fqdn}"
