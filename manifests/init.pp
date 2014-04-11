@@ -26,10 +26,10 @@ class puppet_stack (
   $puppet_ssl_ca_revoc       = $::puppet_stack::params::puppet_ssl_ca_revoc,
   $puppet_passenger_app_root = $::puppet_stack::params::puppet_passenger_app_root,
   $puppet_passenger_doc_root = $::puppet_stack::params::puppet_passenger_doc_root,
-  $use_foreman_as_an_enc     = true,
-  $upload_facts_to_foreman   = true,
+  $use_foreman_as_an_enc     = false,
+  $upload_facts_to_foreman   = false,
   $foreman_url               = $::puppet_stack::params::foreman_url,
-  $report_to_foreman         = true,
+  $report_to_foreman         = false,
   $foreman                   = true,
   $foreman_repo              = $::puppet_stack::params::foreman_repo,
   $foreman_user              = $::puppet_stack::params::foreman_user,
@@ -38,6 +38,8 @@ class puppet_stack (
   $foreman_settings          = $::puppet_stack::params::foreman_settings,
   $foreman_db_adapter        = $::puppet_stack::params::foreman_db_adapter,
   $foreman_db_host           = $::puppet_stack::params::foreman_db_host,
+  $foreman_db_pool           = $::puppet_stack::params::foreman_db_pool,
+  $foreman_db_timeout        = $::puppet_stack::params::foreman_db_timeout,
   $foreman_db_name           = $::puppet_stack::params::foreman_db_name,
   $foreman_db_user           = $::puppet_stack::params::foreman_db_user,
   $foreman_db_password       = undef,
@@ -94,6 +96,8 @@ class puppet_stack (
   validate_bool($upload_facts_to_foreman)
   validate_bool($report_to_foreman)
   validate_string($foreman_repo)
+  validate_string($foreman_db_pool)
+  validate_string($foreman_db_timeout)
   validate_string($foreman_user)
   validate_string($foreman_app_dir)
   validate_string($foreman_db_host)
