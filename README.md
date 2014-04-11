@@ -117,8 +117,11 @@ An all-in-one Puppet Master, with the Foreman, and smart-proxy:
 ```puppet
 # ruby_vers must be specified with a patch number
 class { 'puppet_stack':
-  ruby_vers      => 'ruby-2.0.0-p451',
-  passenger_vers => '4.0.40',
+  ruby_vers               => 'ruby-2.0.0-p451',
+  passenger_vers          => '4.0.40',
+  use_foreman_as_an_enc   => true,
+  upload_facts_to_foreman => true,
+  report_to_foreman       => true,
 }
 ```
 
@@ -140,12 +143,16 @@ When bringing up a Catalog Master, you must set the ca_server attribute to the F
 
 ```puppet
 class { 'puppet_stack':
-  ruby_vers             => 'ruby-2.0.0-p451',
-  passenger_vers        => '4.0.40',
-  puppet_role           => 'catalog',
-  ca_server             => 'puppet-ca.domain.here.com',
-  catalog_cert_autosign => true,
-  smart_proxy           => false,
+  ruby_vers               => 'ruby-2.0.0-p451',
+  passenger_vers          => '4.0.40',
+  puppet_role             => 'catalog',
+  ca_server               => 'puppet-ca.domain.here.com',
+  catalog_cert_autosign   => true,
+  use_foreman_as_an_enc   => true,
+  upload_facts_to_foreman => true,
+  report_to_foreman       => true,
+  foreman                 => true,
+  smart_proxy             => false,
 }
 ```
 
@@ -192,13 +199,16 @@ class { 'puppet_stack':
 
 ```puppet
 class { 'puppet_stack':
-  ruby_vers             => 'ruby-2.0.0-p451',
-  passenger_vers        => '4.0.40',
-  puppet_role           => 'catalog',
-  ca_server             => 'puppet-ca.domain.com',
-  catalog_cert_autosign => true,
-  foreman               => true,
-  smartproxy            => false,
+  ruby_vers               => 'ruby-2.0.0-p451',
+  passenger_vers          => '4.0.40',
+  puppet_role             => 'catalog',
+  ca_server               => 'puppet-ca.domain.com',
+  catalog_cert_autosign   => true,
+  use_foreman_as_an_enc   => true,
+  upload_facts_to_foreman => true,
+  report_to_foreman       => true,
+  foreman                 => true,
+  smartproxy              => false,
 }
 ```
 
@@ -206,17 +216,17 @@ class { 'puppet_stack':
 
 ```puppet
 class { 'puppet_stack':
-  ruby_vers             => 'ruby-2.0.0-p451',
-  passenger_vers        => '4.0.40',
-  puppet_role           => 'catalog',
-  ca_server             => 'puppet-ca.domain.com',
-  catalog_cert_autosign => true,
-  use_foreman_as_an_enc => true,
-  foreman_url           => 'https://puppet-pm1.domain.com',
-  foreman_upload_facts  => true,
-  report_to_foreman     => true,
-  foreman               => false,
-  smartproxy            => false,
+  ruby_vers               => 'ruby-2.0.0-p451',
+  passenger_vers          => '4.0.40',
+  puppet_role             => 'catalog',
+  ca_server               => 'puppet-ca.domain.com',
+  catalog_cert_autosign   => true,
+  use_foreman_as_an_enc   => true,
+  foreman_url             => 'https://puppet-pm1.domain.com',
+  upload_facts_to_foreman => true,
+  report_to_foreman       => true,
+  foreman                 => false,
+  smartproxy              => false,
 }
 ```
 
@@ -248,7 +258,8 @@ Global Passenger options that you want to apply globally to all web applications
 
 ```puppet
 class { 'puppet_stack':
-  ruby_vers => 'ruby-2.0.0-p451'
+  ruby_vers      => 'ruby-2.0.0-p451',
+  passenger_vers => '4.0.40',
   ...
   global_passenger_options => {
     'PassengerDefaultUser'        => 'apache',
@@ -419,7 +430,7 @@ node_terminus = exec
 If you want to use your own ENC script, ensure this is false, place your script, and specify the proper options in your conf_master hash.
 
 ####`upload_facts_to_foreman`
-If true (defaults to false), sets the appropriate value in /etc/puppet/node.rb that will enable Facter fact uploading when clients check-in. You will also need to set the foreman_url if your Foreman is not on your Puppet Master.
+If true (defaults to false), sets the appropriate value in /etc/puppet/node.rb that will upload a client's Facter facts when they check-in. You will also need to set the foreman_url if your Foreman is not on your Puppet Master.
 
 ####`foreman_url`
 The URL of your Foreman instance (defaults to https://$::fqdn). This value is used in both puppet/node.rb, and reports/foreman.rb (see below). If you're using two Puppet Masters, set this value to the Puppet Master that is serving out the Foreman.
@@ -650,6 +661,7 @@ The SSL ca file that smart-proxy will use. This value defaults to the one that P
   class { 'puppet_stack':
     ruby_vers      => 'ruby-2.0.0-p451',
     passenger_vers => '4.0.40',
+    ...
   }
 ```
 * This module does not manage any type of firewall. You will need to open up the appropriate ports yourself. The ports, if left at the defaults, are: 443, 8140, and 8443.
