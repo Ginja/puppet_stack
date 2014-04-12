@@ -70,17 +70,19 @@ class puppet_stack::puppet {
     'certname'    => $cert_name
   }
   $_conf_master_aio        = {
-    'modulepath' => '$confdir/modules',
-    'ca'         => true,
-    'certname'   => $cert_name,
-    'autosign'   => '/etc/puppet/autosign.conf',
-    'reports'    => $log
+    'environmentpath' => '$confdir/environments',
+    'modulepath'      => '$confdir/modules',
+    'ca'              => true,
+    'certname'        => $cert_name,
+    'autosign'        => '/etc/puppet/autosign.conf',
+    'reports'         => $log
   }
   $_conf_master_catalog    = {
-    'modulepath' => '$confdir/modules',
-    'ca'         => false,
-    'certname'   => $cert_name,
-    'reports'    => $log
+    'environmentpath' => '$confdir/environments',
+    'modulepath'      => '$confdir/modules',
+    'ca'              => false,
+    'certname'        => $cert_name,
+    'reports'         => $log
   }
   $_conf_master_ca         = {
     'ca'         => true,

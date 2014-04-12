@@ -1,19 +1,28 @@
 class puppet_stack::puppet::role::catalog {
-  $ruby_vers             = $::puppet_stack::ruby_vers
-  $rvm_prefix            = $::puppet_stack::rvm_prefix
-  $puppet_role           = 'catalog'
-  $rvm_ruby_root         = "${rvm_prefix}/gems/${ruby_vers}"
-  $puppet_cmd            = "${rvm_ruby_root}/bin/puppet"
-  $report_to_foreman     = $::puppet_stack::report_to_foreman
-  $use_foreman_as_an_enc = $::puppet_stack::use_foreman_as_an_enc
-  $catalog_cert_autosign = $::puppet_stack::catalog_cert_autosign
-  $cert_name             = $::puppet_stack::cert_name
+  $ruby_vers               = $::puppet_stack::ruby_vers
+  $rvm_prefix              = $::puppet_stack::rvm_prefix
+  $puppet_role             = 'catalog'
+  $puppet_environments_dir = $::puppet_stack::puppet_environments_dir
+  $rvm_ruby_root           = "${rvm_prefix}/gems/${ruby_vers}"
+  $puppet_cmd              = "${rvm_ruby_root}/bin/puppet"
+  $report_to_foreman       = $::puppet_stack::report_to_foreman
+  $use_foreman_as_an_enc   = $::puppet_stack::use_foreman_as_an_enc
+  $catalog_cert_autosign   = $::puppet_stack::catalog_cert_autosign
+  $cert_name               = $::puppet_stack::cert_name
 
   file { '/etc/puppet':
     ensure => 'directory',
     owner  => 'root',
     group  => 'root',
     mode   => '0755',
+  }
+  
+  file { $puppet_environments_dir: 
+    ensure  => 'directory',
+    owner   => 'root',
+    group   => 'puppet',
+    mode    => '0755',
+    require => File['/etc/puppet'],
   }
 
   file { '/etc/puppet/puppet.conf':
