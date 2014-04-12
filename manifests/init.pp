@@ -17,7 +17,7 @@ class puppet_stack (
   $conf_main                 = {}, # Default value comes from puppet.pp
   $conf_agent                = {}, # Default value comes from puppet.pp
   $conf_master               = {}, # Default value comes from puppet.pp
-  $conf_envs                 = [], # Default value comes from puppet.pp
+  $conf_envs                 = [],
   $puppet_vhost_options      = {},
   $puppet_ssl_cert           = '', # Default value comes from puppet.pp
   $puppet_ssl_key            = '', # Default value comes from puppet.pp

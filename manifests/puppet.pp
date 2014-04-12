@@ -121,19 +121,6 @@ class puppet_stack::puppet {
     $conf_master = $::puppet_stack::conf_master
   }
 
-  if ($::puppet_stack::conf_envs == []) {
-      $conf_envs = $puppet_role ? {
-        /^(aio|catalog)$/ => [
-          [ 'production', { 'manifest' => '$confdir/manifests/site.pp' } ],
-          [ 'development', { 'manifest' => '$confdir/manifests/site.pp' } ]
-        ],
-        default           => [],
-      }
-  }
-  else {
-    $conf_envs = $::puppet_stack::conf_envs
-  }
-
   class { "puppet_stack::puppet::role::${puppet_role}": }
   -> class { 'puppet_stack::puppet::passenger': }
   contain "puppet_stack::puppet::role::${puppet_role}"
