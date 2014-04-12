@@ -22,6 +22,7 @@ class puppet_stack::params {
 
   # PUPPET MASTER #
   $puppet_role               = 'aio'
+  $puppet_environments_dir   = '/etc/puppet/environments'
   $cert_name                 = $::fqdn
   $site_pp_entries           = [ 'node default {}' ]
   $puppet_ssl_ca_revoc       = '/var/lib/puppet/ssl/ca/ca_crl.pem'

@@ -9,9 +9,10 @@ class puppet_stack (
   $global_passenger_options  = {},
   $puppet                    = true,
   $puppet_role               = $::puppet_stack::params::puppet_role,
+  $puppet_environments_dir   = $::puppet_stack::params::puppet_environments_dir,
   $cert_name                 = $::puppet_stack::params::cert_name,
   $ca_server                 = undef,
-  $autosign_entries          = [], # Default value comes from puppet.pp
+  $autosign_entries          = [],
   $site_pp_entries           = $::puppet_stack::params::site_pp_entries,
   $catalog_cert_autosign     = false,
   $conf_main                 = {}, # Default value comes from puppet.pp
@@ -75,6 +76,7 @@ class puppet_stack (
   validate_bool($puppet)
   validate_bool($catalog_cert_autosign)
   validate_re($puppet_role, ['^aio$', '^catalog$', '^ca$'], 'The puppet_role parameter did not match one of these values: "aio", "catalog", "ca"')
+  validate_string($puppet_environments_dir)
   validate_hash($conf_main)
   validate_hash($conf_agent)
   validate_hash($conf_master)
