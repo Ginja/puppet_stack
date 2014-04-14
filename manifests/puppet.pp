@@ -70,6 +70,7 @@ class puppet_stack::puppet {
     'certname'    => $cert_name
   }
   $_conf_master_aio        = {
+    'manifest'        => '$confdir/manifests/',
     'environmentpath' => '$confdir/environments',
     'modulepath'      => '$confdir/modules',
     'ca'              => true,
@@ -78,6 +79,7 @@ class puppet_stack::puppet {
     'reports'         => $log
   }
   $_conf_master_catalog    = {
+    'manifest'        => '$confdir/manifests/',
     'environmentpath' => '$confdir/environments',
     'modulepath'      => '$confdir/modules',
     'ca'              => false,
