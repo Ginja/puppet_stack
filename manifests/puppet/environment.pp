@@ -12,7 +12,7 @@ define puppet_stack::puppet::environment (
   validate_string($owner)
   validate_string($group)
   validate_string($mode)
-  validate_re($ensure, ['^present', '^absent'], 'The ensure parameter has to be one of the following values: present, absent')
+  validate_re($ensure, ['^present$', '^absent$'], 'The ensure parameter has to be one of the following values: present, absent')
 
   $puppet_environments_dir = $puppet_stack::puppet_environments_dir
   $_ensure                 = $ensure ? {
@@ -25,22 +25,25 @@ define puppet_stack::puppet::environment (
     owner   => $owner,
     group   => $group,
     mode    => $mode,
+    force   => true,
     require => File[$puppet_environments_dir],
   }
   
-  file { "${puppet_environments_dir}/${env_name}/modules": 
-    ensure  => $_ensure,
-    owner   => $owner,
-    group   => $group,
-    mode    => $mode,
-    require => File["${puppet_environments_dir}/${env_name}"],
-  }
-  
-  file { "${puppet_environments_dir}/${env_name}/manifests": 
-    ensure  => $_ensure,
-    owner   => $owner,
-    group   => $group,
-    mode    => $mode,
-    require => File["${puppet_environments_dir}/${env_name}"],
+  if ($ensure == 'present') { 
+    file { "${puppet_environments_dir}/${env_name}/modules": 
+      ensure  => $_ensure,
+      owner   => $owner,
+      group   => $group,
+      mode    => $mode,
+      require => File["${puppet_environments_dir}/${env_name}"],
+    }
+    
+    file { "${puppet_environments_dir}/${env_name}/manifests": 
+      ensure  => $_ensure,
+      owner   => $owner,
+      group   => $group,
+      mode    => $mode,
+      require => File["${puppet_environments_dir}/${env_name}"],
+    }
   }
 }
