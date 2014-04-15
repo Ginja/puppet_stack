@@ -1,10 +1,10 @@
 class puppet_stack::puppet {
-  $foreman           = $::puppet_stack::foreman
-  $report_to_foreman = $::puppet_stack::report_to_foreman
-  $puppet_role       = $::puppet_stack::puppet_role
-  $cert_name         = $::puppet_stack::cert_name
-  $ca_server         = $::puppet_stack::ca_server
-  $log               = $report_to_foreman ? {
+  $puppet_environments_dir = $::puppet_stack::puppet_environments_dir
+  $report_to_foreman       = $::puppet_stack::report_to_foreman
+  $puppet_role             = $::puppet_stack::puppet_role
+  $cert_name               = $::puppet_stack::cert_name
+  $ca_server               = $::puppet_stack::ca_server
+  $log                     = $report_to_foreman ? {
     true  => 'log, foreman',
     false => 'log'
   }
@@ -71,7 +71,7 @@ class puppet_stack::puppet {
   }
   $_conf_master_aio        = {
     'manifest'        => '$confdir/manifests/',
-    'environmentpath' => '$confdir/environments',
+    'environmentpath' => "\$confdir/${puppet_environments_dir}",
     'modulepath'      => '$confdir/modules',
     'ca'              => true,
     'certname'        => $cert_name,
@@ -80,7 +80,7 @@ class puppet_stack::puppet {
   }
   $_conf_master_catalog    = {
     'manifest'        => '$confdir/manifests/',
-    'environmentpath' => '$confdir/environments',
+    'environmentpath' => "\$confdir/${puppet_environments_dir}",
     'modulepath'      => '$confdir/modules',
     'ca'              => false,
     'certname'        => $cert_name,

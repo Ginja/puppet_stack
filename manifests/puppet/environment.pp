@@ -1,9 +1,9 @@
 define puppet_stack::puppet::environment ( 
+  $ensure,
   $env_name = $title,
   $owner    = 'root',
   $group    = 'puppet',
-  $mode     = '0755',
-  $ensure
+  $mode     = '0755'
 ) {
   validate_re($env_name, '\A[a-z0-9_]+\Z', 'You\'ve specified an illegal environment name. It has to pass this regex: /\A[a-z0-9_]+\Z/')
   if ($env_name =~ /main|master|agent|user/) {
@@ -20,30 +20,30 @@ define puppet_stack::puppet::environment (
     'absent'  => 'absent',
   }
   
-  file { "${puppet_environments_dir}/${env_name}": 
+  file { "/etc/puppet/${puppet_environments_dir}/${env_name}": 
     ensure  => $_ensure,
     owner   => $owner,
     group   => $group,
     mode    => $mode,
     force   => true,
-    require => File[$puppet_environments_dir],
+    require => File["/etc/puppet/${puppet_environments_dir}"],
   }
   
   if ($ensure == 'present') { 
-    file { "${puppet_environments_dir}/${env_name}/modules": 
+    file { "/etc/puppet/${puppet_environments_dir}/${env_name}/modules": 
       ensure  => $_ensure,
       owner   => $owner,
       group   => $group,
       mode    => $mode,
-      require => File["${puppet_environments_dir}/${env_name}"],
+      require => File["/etc/puppet/${puppet_environments_dir}/${env_name}"],
     }
     
-    file { "${puppet_environments_dir}/${env_name}/manifests": 
+    file { "/etc/puppet/${puppet_environments_dir}/${env_name}/manifests": 
       ensure  => $_ensure,
       owner   => $owner,
       group   => $group,
       mode    => $mode,
-      require => File["${puppet_environments_dir}/${env_name}"],
+      require => File["/etc/puppet/${puppet_environments_dir}/${env_name}"],
     }
   }
 }

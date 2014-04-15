@@ -17,7 +17,7 @@ class puppet_stack::puppet::role::catalog {
     mode   => '0755',
   }
   
-  file { $puppet_environments_dir: 
+  file { "/etc/puppet/${puppet_environments_dir}": 
     ensure  => 'directory',
     owner   => 'root',
     group   => 'puppet',
