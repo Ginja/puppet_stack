@@ -3,10 +3,14 @@ require 'spec_helper_acceptance'
 describe 'puppet_stack' do
   it 'should work with no errors' do
     pp = <<-EOS
-       class { 'puppet_stack': 
-         ruby_vers      => 'ruby-2.0.0-p451',
-         passenger_vers => '4.0.40',
-       }
+      class { 'puppet_stack': 
+        ruby_vers      => 'ruby-2.0.0-p451',
+        passenger_vers => '4.0.40',
+      }
+       
+      puppet_stack::puppet::environment { 'production': 
+        ensure => 'present',
+      }
     EOS
     # Run it twice and test for idempotency
     apply_manifest(pp, :catch_failures => true )
