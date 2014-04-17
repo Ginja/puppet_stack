@@ -9,21 +9,22 @@ class puppet_stack (
   $global_passenger_options  = {},
   $puppet                    = true,
   $puppet_role               = $::puppet_stack::params::puppet_role,
+  $puppet_environments_dir   = $::puppet_stack::params::puppet_environments_dir,
   $cert_name                 = $::puppet_stack::params::cert_name,
   $ca_server                 = undef,
-  $autosign_entries          = [], # Default value comes from puppet.pp
+  $autosign_entries          = [],
   $site_pp_entries           = $::puppet_stack::params::site_pp_entries,
   $catalog_cert_autosign     = false,
   $conf_main                 = {}, # Default value comes from puppet.pp
   $conf_agent                = {}, # Default value comes from puppet.pp
   $conf_master               = {}, # Default value comes from puppet.pp
-  $conf_envs                 = [], # Default value comes from puppet.pp
+  $conf_envs                 = [],
   $puppet_vhost_options      = {},
   $puppet_ssl_cert           = '', # Default value comes from puppet.pp
   $puppet_ssl_key            = '', # Default value comes from puppet.pp
   $puppet_ssl_chain          = '', # Default value comes from puppet.pp
   $puppet_ssl_ca             = '', # Default value comes from puppet.pp
-  $puppet_ssl_ca_revoc       = $::puppet_stack::params::puppet_ssl_ca_revoc,
+  $puppet_ssl_ca_revoc       = '', # Default value comes from puppet.pp
   $puppet_passenger_app_root = $::puppet_stack::params::puppet_passenger_app_root,
   $puppet_passenger_doc_root = $::puppet_stack::params::puppet_passenger_doc_root,
   $use_foreman_as_an_enc     = false,
@@ -73,15 +74,9 @@ class puppet_stack (
   validate_hash($global_passenger_options)
   # PUPPET #
   validate_bool($puppet)
-  validate_bool($catalog_cert_autosign)
   validate_re($puppet_role, ['^aio$', '^catalog$', '^ca$'], 'The puppet_role parameter did not match one of these values: "aio", "catalog", "ca"')
-  validate_hash($conf_main)
-  validate_hash($conf_agent)
-  validate_hash($conf_master)
-  validate_hash($puppet_vhost_options)
-  validate_array($conf_envs)
-  validate_array($autosign_entries)
-  validate_array($site_pp_entries)
+  validate_string($puppet_environments_dir)
+  validate_string($cert_name)
   if ($puppet_role == 'catalog') {
     validate_string($ca_server)
     # validate_string DOES NOT catch undef, like its documentation says it does
@@ -90,24 +85,37 @@ class puppet_stack (
       fail('The ca_server parameter cannot be left undefined when puppet_role is set to catalog')
     }
   }
-  # FOREMAN #
-  validate_bool($foreman)
+  validate_array($autosign_entries)
+  validate_array($site_pp_entries)
+  validate_bool($catalog_cert_autosign)
+  validate_hash($conf_main)
+  validate_hash($conf_agent)
+  validate_hash($conf_master)
+  validate_array($conf_envs)
+  validate_hash($puppet_vhost_options)
+  validate_string($puppet_ssl_cert)    
+  validate_string($puppet_ssl_key)
+  validate_string($puppet_ssl_chain)
+  validate_string($puppet_ssl_ca)
+  validate_string($puppet_ssl_ca_revoc)
+  validate_string($puppet_passenger_app_root)
+  validate_string($puppet_passenger_doc_root)
   validate_bool($use_foreman_as_an_enc)
   validate_bool($upload_facts_to_foreman)
+  validate_re($foreman_url, '^(http:\/\/|https:\/\/).*', "The foreman_url parameter needs to start with either http:// or https://")
   validate_bool($report_to_foreman)
+  # FOREMAN #
+  validate_bool($foreman)
   validate_string($foreman_repo)
+  validate_string($foreman_user)
+  validate_string($foreman_user_home)
+  validate_string($foreman_app_dir)
+  validate_hash($foreman_settings)
+  validate_re($foreman_db_adapter, ['^postgresql$', '^sqlite3$'], 'The foreman_db_type parameter did not match one of these values: "postgresql", "sqlite3"')
+  validate_string($foreman_db_host)
   validate_string($foreman_db_pool)
   validate_string($foreman_db_timeout)
-  validate_string($foreman_user)
-  validate_string($foreman_app_dir)
-  validate_string($foreman_db_host)
   validate_string($foreman_db_name)
-  validate_hash($foreman_settings)
-  validate_hash($foreman_vhost_options)
-  validate_array($foreman_db_config)
-  # Seam left if another DB is to be supported at a later date (ex: mysql)
-  validate_re($foreman_db_adapter, ['^postgresql$', '^sqlite3$'], 'The foreman_db_type parameter did not match one of these values: "postgresql", "sqlite3"')
-  validate_string($foreman_db_password)
   if ($foreman_db_adapter == 'postgresql') {
     validate_string($foreman_db_user)
     validate_string($foreman_db_password)
@@ -115,12 +123,11 @@ class puppet_stack (
       fail('The foreman_db_password parameter cannot be left undefined when foreman_db_adapter is set to postgresql')
     }
   }
-  if ($upload_facts_to_foreman == true)
-  and ($foreman == false)
-  and ($foreman_url == "https://${::fqdn}")
-  and ($puppet_role != 'ca') {
-    warning("You've specified to upload facts to the foreman, yet your foremal_url is pointing at this server. This is highly irregular. To turn this off set upload_facts_to_foreman to false.")
-  }
+  validate_array($foreman_db_config)
+  validate_hash($foreman_vhost_options)
+  validate_string($foreman_ssl_cert)
+  validate_string($foreman_ssl_key)
+  validate_string($foreman_ssl_ca)
   # SMART-PROXY #
   validate_bool($smartproxy)
   validate_string($smartp_repo)
@@ -134,6 +141,12 @@ class puppet_stack (
   validate_string($smartp_ssl_ca)
   validate_hash($smartp_settings)
   validate_hash($smartp_vhost_options)
+  if ($upload_facts_to_foreman == true)
+  and ($foreman == false)
+  and ($foreman_url == "https://${::fqdn}")
+  and ($puppet_role != 'ca') {
+    warning("You've specified to upload facts to the foreman, yet your foremal_url is pointing at this server. This is highly irregular. To turn this off set upload_facts_to_foreman to false.")
+  }
 
   # MAIN #
   require puppet_stack::dependencies

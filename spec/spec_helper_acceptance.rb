@@ -5,6 +5,8 @@ require 'beaker-rspec/helpers/serverspec'
 
 hosts.each do |host|
   on host, "mkdir -p #{host['distmoduledir']}"
+  # So $::fqdn isn't blank
+  on host, "grep 'domain' /etc/resolv.conf || echo 'domain local' >> /etc/resolv.conf"
 end
 
 RSpec.configure do |c|

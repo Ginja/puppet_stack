@@ -1,10 +1,10 @@
 class puppet_stack::puppet {
-  $foreman           = $::puppet_stack::foreman
-  $report_to_foreman = $::puppet_stack::report_to_foreman
-  $puppet_role       = $::puppet_stack::puppet_role
-  $cert_name         = $::puppet_stack::cert_name
-  $ca_server         = $::puppet_stack::ca_server
-  $log               = $report_to_foreman ? {
+  $puppet_environments_dir = $::puppet_stack::puppet_environments_dir
+  $report_to_foreman       = $::puppet_stack::report_to_foreman
+  $puppet_role             = $::puppet_stack::puppet_role
+  $cert_name               = $::puppet_stack::cert_name
+  $ca_server               = $::puppet_stack::ca_server
+  $log                     = $report_to_foreman ? {
     true  => 'log, foreman',
     false => 'log'
   }
@@ -34,6 +34,10 @@ class puppet_stack::puppet {
   $puppet_ssl_key = $::puppet_stack::puppet_ssl_key ? {
     ''      => "/var/lib/puppet/ssl/private_keys/${cert_name}.pem",
     default => $::puppet_stack::puppet_ssl_key,
+  }
+  $puppet_ssl_ca_revoc = $::puppet_stack::puppet_ssl_ca_revoc ? {
+    ''      => '/var/lib/puppet/ssl/ca/ca_crl.pem',
+    default => $::puppet_stack::puppet_ssl_ca_revoc
   }
   # Puppet can't support hash literals in selectors yet...
   # https://projects.puppetlabs.com/issues/14301
@@ -70,17 +74,21 @@ class puppet_stack::puppet {
     'certname'    => $cert_name
   }
   $_conf_master_aio        = {
-    'modulepath' => '$confdir/modules',
-    'ca'         => true,
-    'certname'   => $cert_name,
-    'autosign'   => '/etc/puppet/autosign.conf',
-    'reports'    => $log
+    'manifest'        => '$confdir/manifests/',
+    'environmentpath' => "\$confdir/${puppet_environments_dir}",
+    'modulepath'      => "\$confdir/${puppet_environments_dir}/\$environment/modules:\$confdir/modules",
+    'ca'              => true,
+    'certname'        => $cert_name,
+    'autosign'        => '/etc/puppet/autosign.conf',
+    'reports'         => $log
   }
   $_conf_master_catalog    = {
-    'modulepath' => '$confdir/modules',
-    'ca'         => false,
-    'certname'   => $cert_name,
-    'reports'    => $log
+    'manifest'        => '$confdir/manifests/',
+    'environmentpath' => "\$confdir/${puppet_environments_dir}",
+    'modulepath'      => "\$confdir/${puppet_environments_dir}/\$environment/modules:\$confdir/modules",
+    'ca'              => false,
+    'certname'        => $cert_name,
+    'reports'         => $log
   }
   $_conf_master_ca         = {
     'ca'         => true,
@@ -119,19 +127,6 @@ class puppet_stack::puppet {
   }
   else {
     $conf_master = $::puppet_stack::conf_master
-  }
-
-  if ($::puppet_stack::conf_envs == []) {
-      $conf_envs = $puppet_role ? {
-        /^(aio|catalog)$/ => [
-          [ 'production', { 'manifest' => '$confdir/manifests/site.pp' } ],
-          [ 'development', { 'manifest' => '$confdir/manifests/site.pp' } ]
-        ],
-        default           => [],
-      }
-  }
-  else {
-    $conf_envs = $::puppet_stack::conf_envs
   }
 
   class { "puppet_stack::puppet::role::${puppet_role}": }
