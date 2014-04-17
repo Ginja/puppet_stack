@@ -35,6 +35,10 @@ class puppet_stack::puppet {
     ''      => "/var/lib/puppet/ssl/private_keys/${cert_name}.pem",
     default => $::puppet_stack::puppet_ssl_key,
   }
+  $puppet_ssl_ca_revoc = $::puppet_stack::puppet_ssl_ca_revoc ? {
+    ''      => '/var/lib/puppet/ssl/ca/ca_crl.pem',
+    default => $::puppet_stack::puppet_ssl_ca_revoc
+  }
   # Puppet can't support hash literals in selectors yet...
   # https://projects.puppetlabs.com/issues/14301
   # You'll need to specify all puppet_ssl_* params, if ssldir is not $vardir/ssl
@@ -72,7 +76,7 @@ class puppet_stack::puppet {
   $_conf_master_aio        = {
     'manifest'        => '$confdir/manifests/',
     'environmentpath' => "\$confdir/${puppet_environments_dir}",
-    'modulepath'      => '$confdir/modules',
+    'modulepath'      => "\$confdir/${puppet_environments_dir}/\$environment/modules:\$confdir/modules",
     'ca'              => true,
     'certname'        => $cert_name,
     'autosign'        => '/etc/puppet/autosign.conf',
@@ -81,7 +85,7 @@ class puppet_stack::puppet {
   $_conf_master_catalog    = {
     'manifest'        => '$confdir/manifests/',
     'environmentpath' => "\$confdir/${puppet_environments_dir}",
-    'modulepath'      => '$confdir/modules',
+    'modulepath'      => "\$confdir/${puppet_environments_dir}/\$environment/modules:\$confdir/modules",
     'ca'              => false,
     'certname'        => $cert_name,
     'reports'         => $log

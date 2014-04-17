@@ -25,7 +25,6 @@ class puppet_stack::params {
   $puppet_environments_dir   = 'environments'
   $cert_name                 = $::fqdn
   $site_pp_entries           = [ 'node default {}' ]
-  $puppet_ssl_ca_revoc       = '/var/lib/puppet/ssl/ca/ca_crl.pem'
   $puppet_passenger_app_root = '/etc/puppet/rack'
   $puppet_passenger_doc_root = '/etc/puppet/rack/public'
 

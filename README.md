@@ -386,7 +386,7 @@ If false (defaults to true), will prevent any type of Puppet Master from being c
 Specifies the type of Puppet Master to configure (defaults to aio). Valid options are aio (all-in-one), ca, and catalog.
 
 ####`puppet_environments_dir`
-Specifies the name of the environment directory, which will be placed under /etc/puppet (defaults to environments). This directory is used to configure [directory environments](http://docs.puppetlabs.com/puppet/latest/reference/environments.html).
+Specifies the name of the directory that will contain [directory environments](http://docs.puppetlabs.com/puppet/latest/reference/environments.html) (defaults to environments). It will be placed directly under /etc/puppet.
 
 ####`cert_name`
 The certificate name for the server (defaults to $::fqdn).
@@ -796,6 +796,7 @@ The mode of the directory environment folders (defaults to 0755).
 
 * Some exec resources may take a long time to finish depending on your Internet connection. Therefore certain exec resources have had their timeout attribute increased to 30 minutes. Don't be worried if your first Puppet run seems to be stalled.
 
+* All you need to do to switch Passenger versions is change the value for [passenger_vers](#passenger_vers). Doing so will install the new version as a gem, run `passenger-install-apache2-module`, update conf.d/passenger.conf with the appropriate values, and restart Apache.
 
 ##Troubleshooting
 
@@ -921,7 +922,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 end
 ```
 
-Modify manifests/site.pp, and add the resource you want to test:
+Add Puppet resources to manifests/site.pp:
+
+Example:
 
 ```puppet
 class { 'puppet_stack':
@@ -960,4 +963,4 @@ Bring up the box, and watch the magic happen:
 vagrant up
 ```
 
-The [ginja/centos-6.5-x64-rvm-ruby2.0.0-puppet](https://vagrantcloud.com/ginja/centos-6.5-x64-rvm-ruby2.0.0-puppet) box is hosted from my Dropbox account, so there is a 20GB/day bandwidth limit. While it's unlikely that this threshold will ever be reached, if you do find yourself unable to download this box, you may need to try again the next day.
+The [ginja/centos-6.5-x64-rvm-ruby2.0.0-puppet](https://vagrantcloud.com/ginja/centos-6.5-x64-rvm-ruby2.0.0-puppet) box is hosted from my Dropbox account, so there is a 20GB/day bandwidth limit. While it's unlikely that this threshold will ever be reached, if you do find yourself unable to download this box, you may need to try again the next day. The Packer template used to create this box can be found in my [packer-templates](https://github.com/Ginja/packer-templates) repo.
