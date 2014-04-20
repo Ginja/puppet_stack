@@ -1,6 +1,6 @@
 class puppet_stack::params {
   # Because we use contain
-  validate_re($::puppetversion, '^3[.]4[.]\d+', "The puppet_stack module requires a Puppet version of 3.4.0+ - version: ${::puppetversion}")
+  validate_re($::puppetversion, '^3[.](4|5)[.]\d+', "The puppet_stack module requires a Puppet version of 3.4.0+ - version: ${::puppetversion}")
   # Because 1.8.* should not be used anymore. They're EOL!
   validate_re($::rubyversion, '^(1|2)[.][^8][.]\d+', "You should not be using Ruby ${::rubyversion} with this module. Please install a newer version of Ruby, or just use your available distro packages.")
 
