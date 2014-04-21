@@ -6,53 +6,49 @@ class puppet_stack::puppet::passenger {
   $apache_user               = $::puppet_stack::params::apache_user
   $http_dir                  = $::puppet_stack::params::http_dir
 
-  # A catalog master cannot be started unless it has a cert
-  unless ($puppet_role == 'catalog')
-  and ($catalog_cert_autosign == false) {
-    file { [ $puppet_passenger_app_root, $puppet_passenger_doc_root ]:
-      ensure => 'directory',
-      owner  => 'root',
-      group  => 'root',
-      mode   => '0755',
-      before => File["${puppet_passenger_app_root}/config.ru"],
-    }
+  file { [ $puppet_passenger_app_root, $puppet_passenger_doc_root ]:
+    ensure => 'directory',
+    owner  => 'root',
+    group  => 'root',
+    mode   => '0755',
+    before => File["${puppet_passenger_app_root}/config.ru"],
+  }
 
-    file { "${puppet_passenger_app_root}/tmp":
-      ensure  => 'directory',
-      owner   => 'puppet',
-      group   => $apache_user,
-      mode    => '2770',
-      require => File[$puppet_passenger_app_root],
-    }
+  file { "${puppet_passenger_app_root}/tmp":
+    ensure  => 'directory',
+    owner   => 'puppet',
+    group   => $apache_user,
+    mode    => '2770',
+    require => File[$puppet_passenger_app_root],
+  }
 
-    # If root owns the file for some reason
-    file { "${puppet_passenger_app_root}/tmp/restart.txt":
-      ensure  => 'file',
-      owner   => 'puppet',
-      group   => $apache_user,
-      mode    => '0644',
-      before  => Exec['restart_puppet'],
-      require => File["${puppet_passenger_app_root}/tmp"],
-    }
+  # If root owns the file for some reason
+  file { "${puppet_passenger_app_root}/tmp/restart.txt":
+    ensure  => 'file',
+    owner   => 'puppet',
+    group   => $apache_user,
+    mode    => '0644',
+    before  => Exec['restart_puppet'],
+    require => File["${puppet_passenger_app_root}/tmp"],
+  }
 
-    # Could copy from puppet gem, but this is more managable
-    file { "${puppet_passenger_app_root}/config.ru":
-      ensure  => 'file',
-      owner   => 'puppet',
-      group   => 'puppet',
-      mode    => '0444',
-      source  => 'puppet:///modules/puppet_stack/puppet/config.ru',
-    }
+  # Could copy from puppet gem, but this is more managable
+  file { "${puppet_passenger_app_root}/config.ru":
+    ensure => 'file',
+    owner  => 'puppet',
+    group  => 'puppet',
+    mode   => '0444',
+    source => 'puppet:///modules/puppet_stack/puppet/config.ru',
+  }
 
-    file { "${http_dir}/conf.d/puppet_master.conf":
-      ensure  => 'file',
-      owner   => 'root',
-      group   => 'root',
-      mode    => '0444',
-      content => template('puppet_stack/passenger/puppet_master.conf.erb'),
-      notify  => Service['httpd'],
-      require => File["${puppet_passenger_app_root}/config.ru"],
-    }
+  file { "${http_dir}/conf.d/puppet_master.conf":
+    ensure  => 'file',
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0444',
+    content => template('puppet_stack/passenger/puppet_master.conf.erb'),
+    notify  => Service['httpd'],
+    require => File["${puppet_passenger_app_root}/config.ru"],
   }
 
   exec { 'restart_puppet':

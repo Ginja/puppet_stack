@@ -126,31 +126,6 @@ describe 'puppet_stack', :type => 'class' do
       it { expect { should compile }.to raise_error(/cannot be left undefined/) }
     end
 
-    context "with puppet => true, puppet_role => catalog, ca_server => set, :catalog_cert_autosign => false" do
-      let :params do
-        {
-          :ruby_vers             => 'ruby-2.0.0-p451',
-          :passenger_vers        => '4.0.40',
-          :puppet                => true,
-          :puppet_role           => 'catalog',
-          :ca_server             => 'set',
-          :catalog_cert_autosign => false,
-          :foreman               => true,
-          :smartproxy            => true,
-        }
-      end
-      it {
-           should compile.with_all_deps
-           should_not contain_file('/etc/httpd/conf.d/puppet_master.conf')
-           should contain_class('puppet_stack::dependencies')
-           should contain_class('puppet_stack::dependencies::generic')
-           should contain_class('puppet_stack::dependencies::rhel')
-           should contain_class('puppet_stack::puppet')
-           should contain_class('puppet_stack::puppet::role::catalog')
-           should contain_service('httpd').with_ensure('running')
-         }
-    end
-
     context "with only foreman => true" do
       let :params do
         {
