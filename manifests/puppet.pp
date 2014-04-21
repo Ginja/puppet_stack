@@ -1,5 +1,4 @@
 class puppet_stack::puppet {
-  $puppet_environments_dir = $::puppet_stack::puppet_environments_dir
   $report_to_foreman       = $::puppet_stack::report_to_foreman
   $puppet_role             = $::puppet_stack::puppet_role
   $cert_name               = $::puppet_stack::cert_name
@@ -75,8 +74,7 @@ class puppet_stack::puppet {
   }
   $_conf_master_aio        = {
     'manifest'        => '$confdir/manifests/',
-    'environmentpath' => "\$confdir/${puppet_environments_dir}",
-    'modulepath'      => "\$confdir/${puppet_environments_dir}/\$environment/modules:\$confdir/modules",
+    'modulepath'      => '$confdir/modules',
     'ca'              => true,
     'certname'        => $cert_name,
     'autosign'        => '/etc/puppet/autosign.conf',
@@ -84,8 +82,7 @@ class puppet_stack::puppet {
   }
   $_conf_master_catalog    = {
     'manifest'        => '$confdir/manifests/',
-    'environmentpath' => "\$confdir/${puppet_environments_dir}",
-    'modulepath'      => "\$confdir/${puppet_environments_dir}/\$environment/modules:\$confdir/modules",
+    'modulepath'      => '$confdir/modules',
     'ca'              => false,
     'certname'        => $cert_name,
     'reports'         => $log

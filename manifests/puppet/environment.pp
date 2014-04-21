@@ -14,36 +14,35 @@ define puppet_stack::puppet::environment (
   validate_string($mode)
   validate_re($ensure, ['^present$', '^absent$'], 'The ensure parameter has to be one of the following values: present, absent')
 
-  $puppet_environments_dir = $puppet_stack::puppet_environments_dir
-  $_ensure                 = $ensure ? {
+  $_ensure = $ensure ? {
     'present' => 'directory',
     'absent'  => 'absent',
   }
   
-  file { "/etc/puppet/${puppet_environments_dir}/${env_name}": 
+  file { "/etc/puppet/environments/${env_name}": 
     ensure  => $_ensure,
     owner   => $owner,
     group   => $group,
     mode    => $mode,
     force   => true,
-    require => File["/etc/puppet/${puppet_environments_dir}"],
+    require => File['/etc/puppet/environments'],
   }
   
   if ($ensure == 'present') { 
-    file { "/etc/puppet/${puppet_environments_dir}/${env_name}/modules": 
+    file { "/etc/puppet/environments/${env_name}/modules": 
       ensure  => $_ensure,
       owner   => $owner,
       group   => $group,
       mode    => $mode,
-      require => File["/etc/puppet/${puppet_environments_dir}/${env_name}"],
+      require => File["/etc/puppet/environments/${env_name}"],
     }
     
-    file { "/etc/puppet/${puppet_environments_dir}/${env_name}/manifests": 
+    file { "/etc/puppet/environments/${env_name}/manifests": 
       ensure  => $_ensure,
       owner   => $owner,
       group   => $group,
       mode    => $mode,
-      require => File["/etc/puppet/${puppet_environments_dir}/${env_name}"],
+      require => File["/etc/puppet/environments/${env_name}"],
     }
   }
 }

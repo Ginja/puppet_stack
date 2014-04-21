@@ -2,7 +2,6 @@ class puppet_stack::puppet::role::catalog {
   $ruby_vers               = $::puppet_stack::ruby_vers
   $rvm_prefix              = $::puppet_stack::rvm_prefix
   $puppet_role             = 'catalog'
-  $puppet_environments_dir = $::puppet_stack::puppet_environments_dir
   $rvm_ruby_root           = "${rvm_prefix}/gems/${ruby_vers}"
   $puppet_cmd              = "${rvm_ruby_root}/bin/puppet"
   $report_to_foreman       = $::puppet_stack::report_to_foreman
@@ -17,7 +16,7 @@ class puppet_stack::puppet::role::catalog {
     mode   => '0755',
   }
   
-  file { "/etc/puppet/${puppet_environments_dir}": 
+  file { '/etc/puppet/environments': 
     ensure  => 'directory',
     owner   => 'root',
     group   => 'puppet',
