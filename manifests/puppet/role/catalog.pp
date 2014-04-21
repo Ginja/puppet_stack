@@ -105,16 +105,11 @@ class puppet_stack::puppet::role::catalog {
     mode   => '0771',
   }
 
-  # Not my favourite way to solve this problem, but it will have to do for now
-  if ($catalog_cert_autosign == false) {
-    notify { "The catalog_cert_autosign parameter is set to false. To disable this message: sign this host's cert on your Puppet CA server, set catalog_cert_autosign to true, and run Puppet on this host again": }
-  }
-
   # May I recommend configuring autosign for your Puppet PMs?
   # If not, you'll need to sign it manually, and re-run your manifest
   exec { 'first_check_in':
     command => "${puppet_cmd} certificate generate --verbose --ca-location remote ${cert_name}",
-    unless  => "/usr/bin/test -f `${puppet_cmd} config print ssldir`/certs/${cert_name}.pem",
+    unless  => "/usr/bin/test -f /var/lib/puppet/ssl/certs/${cert_name}.pem",
     returns => [ 0, 1 ], # https://tickets.puppetlabs.com/browse/PUP-2018
     require => File['/etc/puppet', '/var/lib/puppet/ssl'],
   }
