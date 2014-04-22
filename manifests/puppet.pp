@@ -11,6 +11,10 @@ class puppet_stack::puppet {
     true  => 'log, foreman',
     false => 'log'
   }
+  $manifest                = $::puppetversion ? {
+    /3[.]4[.]\d+/ => '$confdir/manifests/site.pp',
+    default       => '$confdir/manifests/'
+  }
 
   if ($::puppet_stack::puppet_ssl_chain == '') {
     $puppet_ssl_chain = $puppet_role ? {
@@ -78,14 +82,14 @@ class puppet_stack::puppet {
     'pluginsync'  => true,
   }
   $_conf_master_aio = {
-    'manifest'   => '$confdir/manifests/',
+    'manifest'   => $manifest,
     'modulepath' => '$confdir/modules',
     'ca'         => true,
     'autosign'   => '/etc/puppet/autosign.conf',
     'reports'    => $log
   }
   $_conf_master_catalog = {
-    'manifest'   => '$confdir/manifests/',
+    'manifest'   => $manifest,
     'modulepath' => '$confdir/modules',
     'ca'         => false,
     'reports'    => $log
