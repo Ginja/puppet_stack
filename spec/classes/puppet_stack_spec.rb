@@ -48,9 +48,11 @@ describe 'puppet_stack', :type => 'class' do
   end
 
   context "on a RedHat system" do
+    supported_puppet_versions = ['3.4.3', '3.5.1']
+    random_puppet_vers = supported_puppet_versions[rand(supported_puppet_versions.length - 1)]
     let :facts do
       {
-        :puppetversion          => '3.4.3',
+        :puppetversion          => random_puppet_vers,
         :rubyversion            => '2.0.0',
         :osfamily               => 'RedHat',
         :operatingsystemrelease => '6',
@@ -119,11 +121,173 @@ describe 'puppet_stack', :type => 'class' do
           :passenger_vers => '4.0.40',
           :puppet         => true,
           :puppet_role    => 'catalog',
-          :foreman        => true,
-          :smartproxy     => true,
         }
       end
       it { expect { should compile }.to raise_error(/cannot be left undefined/) }
+    end
+    
+    context "with puppet => true, puppet_role => catalog, conf_main => set with no ca_server key" do
+      let :params do
+        {
+          :ruby_vers      => 'ruby-2.0.0-p451',
+          :passenger_vers => '4.0.40',
+          :puppet         => true,
+          :puppet_role    => 'catalog',
+          :conf_main      => {
+            'ssldir'        => '$vardir/ssl',
+            'logdir'        => '/var/log/puppet',
+            'privatekeydir' => '$ssldir/private_keys { group = service }',
+            'hostprivkey'   => '$privatekeydir/$certname.pem { mode = 640 }',
+            'server'        => $pm_server,
+            'certname'      => $cert_name,
+          }
+        }
+      end
+      it { expect { should compile }.to raise_error(/conf_main hash shoud contain/) }
+    end
+    
+    context "with puppet => true, puppet_role => catalog, conf_main => set with ca_server key" do
+      let :params do
+        {
+          :ruby_vers      => 'ruby-2.0.0-p451',
+          :passenger_vers => '4.0.40',
+          :puppet         => true,
+          :puppet_role    => 'catalog',
+          :conf_main      => {
+            'ssldir'        => '$vardir/ssl',
+            'logdir'        => '/var/log/puppet',
+            'privatekeydir' => '$ssldir/private_keys { group = service }',
+            'hostprivkey'   => '$privatekeydir/$certname.pem { mode = 640 }',
+            'server'        => $pm_server,
+            'certname'      => $cert_name,
+            'ca_server'     => $ca_server,
+          },
+        }
+      end
+      it { should compile.with_all_deps }
+    end
+    
+    context "with puppet => true, puppet_role => ca, pm_server => undef" do
+      let :params do
+        {
+          :ruby_vers      => 'ruby-2.0.0-p451',
+          :passenger_vers => '4.0.40',
+          :puppet         => true,
+          :puppet_role    => 'ca',
+        }
+      end
+      it { expect { should compile }.to raise_error(/cannot be left undefined/) }
+    end
+    
+    context "with puppet => true, puppet_role => ca, pm_server => undef, conf_agent => set with no server key" do
+      let :params do
+        {
+          :ruby_vers      => 'ruby-2.0.0-p451',
+          :passenger_vers => '4.0.40',
+          :puppet         => true,
+          :puppet_role    => 'ca',
+          :conf_agent     => {
+            'report'     => 'true',
+            'listen'     => 'false',
+            'pluginsync' => 'true',
+            'certname'   => 'puppet.localdomain',
+          },
+        }
+      end
+      it { expect { should compile }.to raise_error(/cannot be left undefined/) }
+    end
+    
+    context "with puppet => true, puppet_role => ca, conf_{main,agent} => set with no server key" do
+      let :params do
+        {
+          :ruby_vers      => 'ruby-2.0.0-p451',
+          :passenger_vers => '4.0.40',
+          :puppet         => true,
+          :puppet_role    => 'ca',
+          :conf_main      => {
+            'ssldir'        => '$vardir/ssl',
+            'logdir'        => '/var/log/puppet',
+            'privatekeydir' => '$ssldir/private_keys { group = service }',
+            'hostprivkey'   => '$privatekeydir/$certname.pem { mode = 640 }',
+            'certname'      => $cert_name,
+            'ca_server'     => $ca_server,
+          },
+          :conf_agent     => {
+            'report'     => 'true',
+            'listen'     => 'false',
+            'pluginsync' => 'true',
+            'certname'   => 'puppet.localdomain',
+          },
+        }
+      end
+      it { expect { should compile }.to raise_error(/conf_main or conf_agent hash should contain/) }
+    end
+    
+    context "with puppet => true, puppet_role => ca, conf_agent => set with server key" do
+      let :params do
+        {
+          :ruby_vers      => 'ruby-2.0.0-p451',
+          :passenger_vers => '4.0.40',
+          :puppet         => true,
+          :puppet_role    => 'ca',
+          :conf_agent     => {
+            'report'     => 'true',
+            'listen'     => 'false',
+            'pluginsync' => 'true',
+            'certname'   => 'puppet.localdomain',
+            'server'     => 'puppet.localdomain',
+          },
+        }
+      end
+      it { should compile.with_all_deps }
+    end  
+    
+    context "with puppet => true, puppet_role => ca, conf_main => set with server key" do
+      let :params do
+        {
+          :ruby_vers      => 'ruby-2.0.0-p451',
+          :passenger_vers => '4.0.40',
+          :puppet         => true,
+          :puppet_role    => 'ca',
+          :conf_main      => {
+            'ssldir'        => '$vardir/ssl',
+            'logdir'        => '/var/log/puppet',
+            'privatekeydir' => '$ssldir/private_keys { group = service }',
+            'hostprivkey'   => '$privatekeydir/$certname.pem { mode = 640 }',
+            'certname'      => $cert_name,
+            'ca_server'     => $ca_server,
+            'server'        => 'puppet.localdomain',
+          },
+        }
+      end
+      it { should compile.with_all_deps }
+    end
+    
+    context "with puppet => true, puppet_role => ca, conf_main => set with no server key, conf_agent => set with server key" do
+      let :params do
+        {
+          :ruby_vers      => 'ruby-2.0.0-p451',
+          :passenger_vers => '4.0.40',
+          :puppet         => true,
+          :puppet_role    => 'ca',
+          :conf_main      => {
+            'ssldir'        => '$vardir/ssl',
+            'logdir'        => '/var/log/puppet',
+            'privatekeydir' => '$ssldir/private_keys { group = service }',
+            'hostprivkey'   => '$privatekeydir/$certname.pem { mode = 640 }',
+            'certname'      => $cert_name,
+            'ca_server'     => $ca_server,
+          },
+          :conf_agent     => {
+            'report'     => 'true',
+            'listen'     => 'false',
+            'pluginsync' => 'true',
+            'certname'   => 'puppet.localdomain',
+            'server'     => 'puppet.localdomain',
+          },
+        }
+      end
+      it { should compile.with_all_deps }
     end
 
     context "with only foreman => true" do
