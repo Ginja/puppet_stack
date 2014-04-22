@@ -11,6 +11,7 @@ class puppet_stack (
   $puppet_role               = $::puppet_stack::params::puppet_role,
   $cert_name                 = $::puppet_stack::params::cert_name,
   $ca_server                 = undef,
+  $pm_server                 = undef,
   $autosign_entries          = [],
   $site_pp_entries           = $::puppet_stack::params::site_pp_entries,
   $catalog_cert_autosign     = false,
@@ -75,12 +76,35 @@ class puppet_stack (
   validate_bool($puppet)
   validate_re($puppet_role, ['^aio$', '^catalog$', '^ca$'], 'The puppet_role parameter did not match one of these values: "aio", "catalog", "ca"')
   validate_string($cert_name)
-  if ($puppet_role == 'catalog') {
+  if ($puppet_role == 'catalog')
+  and ($conf_main == {}) {
     validate_string($ca_server)
     # validate_string DOES NOT catch undef, like its documentation says it does
     # https://github.com/puppetlabs/puppetlabs-stdlib
     if ($ca_server == undef) {
-      fail('The ca_server parameter cannot be left undefined when puppet_role is set to catalog')
+      fail('The ca_server parameter cannot be left undefined when puppet_role is set to catalog, and the default value for conf_main is being used. Please set this parameter to the FQDN of your Puppet CA Master, or specify "ca_server" in the conf_main hash.')
+    }
+  }
+  elsif ($conf_main != {})  {
+    unless has_key($conf_main, 'ca_server') {
+      fail('The conf_main hash shoud contain a "ca_server" key.')
+    }
+  }
+  if ($puppet_role == 'ca')
+  and ($conf_main == {}) {
+    unless has_key($conf_agent, 'server') {    
+      validate_string($pm_server)
+      # validate_string DOES NOT catch undef, like its documentation says it does
+      # https://github.com/puppetlabs/puppetlabs-stdlib
+      if ($pm_server == undef) {
+        fail('The pm_server parameter cannot be left undefined when puppet_role is set to ca, and the default value for conf_main is being used. Please set this parameter to the FQDN of your Puppet Catalog Master, or specify "server" in either the conf_{main,agent} hash.')
+      }
+    }
+  }
+  elsif ($conf_main != {}) {
+    unless has_key($conf_main, 'server')
+    or has_key ($conf_agent, 'server') {
+      fail('The conf_main or conf_agent hash should contain a "server" key.')
     }
   }
   validate_array($autosign_entries)

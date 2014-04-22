@@ -3,6 +3,10 @@ class puppet_stack::puppet {
   $puppet_role             = $::puppet_stack::puppet_role
   $cert_name               = $::puppet_stack::cert_name
   $ca_server               = $::puppet_stack::ca_server
+  $pm_server               = $::puppet_stack::pm_server ? {
+    undef   => $::fqdn,
+    default => $::puppet_stack::pm_server
+  }
   $log                     = $report_to_foreman ? {
     true  => 'log, foreman',
     false => 'log'
@@ -41,12 +45,13 @@ class puppet_stack::puppet {
   # Puppet can't support hash literals in selectors yet...
   # https://projects.puppetlabs.com/issues/14301
   # You'll need to specify all puppet_ssl_* params, if ssldir is not $vardir/ssl
-  $_empty_hash             = {}
+  $_empty_hash = {}
   $_conf_main_catalog = {
     'ssldir'        => '$vardir/ssl',
     'logdir'        => '/var/log/puppet',
     'privatekeydir' => '$ssldir/private_keys { group = service }',
     'hostprivkey'   => '$privatekeydir/$certname.pem { mode = 640 }',
+    'server'        => $pm_server,
     'certname'      => $cert_name,
     'ca_server'     => $ca_server
   }
@@ -55,6 +60,7 @@ class puppet_stack::puppet {
     'logdir'        => '/var/log/puppet',
     'privatekeydir' => '$ssldir/private_keys { group = service }',
     'hostprivkey'   => '$privatekeydir/$certname.pem { mode = 640 }',
+    'server'        => $pm_server,
     'certname'      => $cert_name
   }
   $_conf_agent_aio_catalog = {
@@ -63,7 +69,6 @@ class puppet_stack::puppet {
     'report'      => true,
     'listen'      => false,
     'pluginsync'  => true,
-    'server'      => $cert_name
   }
   $_conf_agent_ca = {
     'classfile'   => '$vardir/classes.txt',
