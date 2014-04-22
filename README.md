@@ -298,7 +298,7 @@ These two resources would create the following directory tree underneath /etc/pu
 
 ```
 /etc/puppet
- \- environments # Assuming puppet_environments_dir is left at its default value
+ \- environments
      \- production
      |   \- modules/
      |   |   \- ...
@@ -385,9 +385,6 @@ If false (defaults to true), will prevent any type of Puppet Master from being c
 ####`puppet_role`
 Specifies the type of Puppet Master to configure (defaults to aio). Valid options are aio (all-in-one), ca, and catalog.
 
-####`puppet_environments_dir`
-Specifies the name of the directory that will contain [directory environments](http://docs.puppetlabs.com/puppet/latest/reference/environments.html) (defaults to environments). It will be placed directly under /etc/puppet.
-
 ####`cert_name`
 The certificate name for the server (defaults to $::fqdn).
 
@@ -455,28 +452,26 @@ A hash of configuration options to put into the [master] section of /etc/puppet/
 ```ruby
 # Defaults [master] settings for the aio role
 $conf_master_aio = {
-  'manifest'        => '$confdir/manifests/',
-  'environmentpath' => "\$confdir/${puppet_environments_dir}",
-  'modulepath'      => '$confdir/modules',
-  'ca'              => true,
-  'certname'        => $cert_name,
-  'autosign'        => '/etc/puppet/autosign.conf',
-  'reports'         => $log
+  'manifest'   => '$confdir/manifests/',
+  'modulepath' => '$confdir/modules',
+  'ca'         => true,
+  'certname'   => $cert_name,
+  'autosign'   => '/etc/puppet/autosign.conf',
+  'reports'    => $log
 }
 # Defaults [master] settings for the catalog role
 $conf_master_catalog = {
-  'manifest'        => '$confdir/manifests/',
-  'environmentpath' => "\$confdir/${puppet_environments_dir}",
-  'modulepath'      => '$confdir/modules',
-  'ca'              => false,
-  'certname'        => $cert_name,
-  'reports'         => $log
+  'manifest'   => '$confdir/manifests/',
+  'modulepath' => '$confdir/modules',
+  'ca'         => false,
+  'certname'   => $cert_name,
+  'reports'    => $log
 }
 # Defaults [master] settings for the ca role
 $conf_master_ca = {
-  'ca'         => true,
-  'certname'   => $cert_name,
-  'autosign'   => '/etc/puppet/autosign.conf'
+  'ca'       => true,
+  'certname' => $cert_name,
+  'autosign' => '/etc/puppet/autosign.conf'
 }
 ```
 
@@ -527,6 +522,8 @@ The Passenger document root for Puppet (defaults to /etc/puppet/rack/public).
 If true (defaults to false), will place /etc/puppet/node.rb and set the following options in the [master] section of /etc/puppet/puppet.conf:
 
 ```ini
+[master]
+...
 external_nodes = /etc/puppet/node.rb
 node_terminus = exec
 ```
@@ -549,7 +546,7 @@ reports = log, foreman
 ```
 
 ####`foreman`
-If false (defaults to true), will prevent The Foreman from being configured.
+If false (defaults to true), will prevent the Foreman from being configured.
 
 ####`foreman_repo`
 The git repository from which to clone the Foreman. Defaults to the 1.4-stable branch of the official repo (https://github.com/theforeman/foreman.git -b 1.4-stable).
@@ -716,7 +713,7 @@ The application directory for smart-proxy (defaults to ${smartp_user_home}/smart
 The log file for the smart-proxy application (defaults to smart-proxy/log/app.log). If you change the value for this parameter you must ensure the directory where it resides in exists. Otherwise smart-proxy will fail to start.
 
 ####`smartp_settings`
-A hash of configuration options that will be put into smart-proxy's config/settings.yml file. Defaults settings are:
+A hash of configuration options that will be put into smart-proxy's config/settings.yml file. The default settings are:
 
 ```puppet
 $smartp_settings = {
@@ -724,7 +721,7 @@ $smartp_settings = {
   ':ssl_private_key' => $smartp_ssl_key,
   ':ssl_ca_file'     => $smartp_ssl_ca,
   ':trusted_hosts'   => [ $::fqdn ],
-  # Must be specified, only available through smart-proxy's develop branch (see Additional Notes)
+  # Must be specified, only available through smart-proxy's develop branch for now (see Additional Notes)
   ':sudo_command'    => "${rvm_prefix}/bin/rvmsudo",
   ':daemon'          => true,
   ':port'            => $smartp_port,
@@ -804,10 +801,10 @@ A lot of work has been put into this module to prevent the most commons of pitfa
 
 ###Tips
 
-When you're troubleshooting a problem related to The Foreman or smart-proxy, it's best to become the user they're configured under (by default: foreman, and smartproxy). Both accounts do not have a password set for security reasons, but their shells are both set to /bin/bash, so you can log into them from root:
+When you're troubleshooting a problem related to the Foreman or smart-proxy, it's best to become the user they're configured under (by default: foreman, and smartproxy). Both accounts do not have a password set for security reasons, but their shells are both set to /bin/bash, so you can log into them from root:
 
 ```bash
-# Gain root shell
+# Gain a root shell
 sudo su -
 
 # Become user
@@ -816,10 +813,10 @@ su - foreman
 su - smartproxy
 ```
 
-If you ever need to run any rake tasks for The Foreman manually, here they are:
+If you ever need to run any rake tasks for the Foreman manually, here they are:
 
 ```bash
-# Assuming you're at the root of The Foreman repo
+# Assuming you're at the root of the Foreman repo
 bundle exec rake db:migrate RAILS_ENV=production 
 bundle exec rake db:seed assets:precompile locale:pack RAILS_ENV=production
 ```

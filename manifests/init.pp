@@ -9,7 +9,6 @@ class puppet_stack (
   $global_passenger_options  = {},
   $puppet                    = true,
   $puppet_role               = $::puppet_stack::params::puppet_role,
-  $puppet_environments_dir   = $::puppet_stack::params::puppet_environments_dir,
   $cert_name                 = $::puppet_stack::params::cert_name,
   $ca_server                 = undef,
   $autosign_entries          = [],
@@ -64,7 +63,7 @@ class puppet_stack (
   $smartp_ssl_key            = '', # Default value comes from smartproxy.pp
   $smartp_ssl_ca             = '', # Default value comes from smartproxy.pp
 ) inherits puppet_stack::params {
-  validate_re($ruby_vers, 'ruby-\d[.]\d[.]\d-p\d\d\d', 'The ruby_vers parameter did not match a valid Ruby version (ex: \'ruby-2.0.0-p451\')')
+  validate_re($ruby_vers, 'ruby-\d[.]\d[.]\d-p\d+', 'The ruby_vers parameter did not match a valid Ruby version (ex: \'ruby-2.0.0-p451\')')
   validate_re($passenger_vers, '\d[.]\d[.]\d+', 'The passenger_vers parameter must be numerical (ex: \'4.0.40\')')
   validate_string($apache_user)
   validate_string($http_dir)
@@ -75,7 +74,6 @@ class puppet_stack (
   # PUPPET #
   validate_bool($puppet)
   validate_re($puppet_role, ['^aio$', '^catalog$', '^ca$'], 'The puppet_role parameter did not match one of these values: "aio", "catalog", "ca"')
-  validate_string($puppet_environments_dir)
   validate_string($cert_name)
   if ($puppet_role == 'catalog') {
     validate_string($ca_server)
