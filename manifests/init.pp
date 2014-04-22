@@ -30,7 +30,7 @@ class puppet_stack (
   $upload_facts_to_foreman   = false,
   $foreman_url               = $::puppet_stack::params::foreman_url,
   $report_to_foreman         = false,
-  $foreman                   = true,
+  $foreman                   = false,
   $foreman_repo              = $::puppet_stack::params::foreman_repo,
   $foreman_user              = $::puppet_stack::params::foreman_user,
   $foreman_user_home         = $::puppet_stack::params::foreman_user_home,
@@ -49,7 +49,7 @@ class puppet_stack (
   $foreman_ssl_cert          = '', # Default value comes from foreman.pp
   $foreman_ssl_key           = '', # Default value comes from foreman.pp
   $foreman_ssl_ca            = '', # Default value comes from foreman.pp
-  $smartproxy                = true,
+  $smartproxy                = false,
   $smartp_repo               = $::puppet_stack::params::smartp_repo,
   $smartp_user               = $::puppet_stack::params::smartp_user,
   $smartp_user_home          = $::puppet_stack::params::smartp_user_home,
