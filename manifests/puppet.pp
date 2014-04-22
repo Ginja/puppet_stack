@@ -42,18 +42,20 @@ class puppet_stack::puppet {
   # https://projects.puppetlabs.com/issues/14301
   # You'll need to specify all puppet_ssl_* params, if ssldir is not $vardir/ssl
   $_empty_hash             = {}
-  $_conf_main_catalog      = {
+  $_conf_main_catalog = {
     'ssldir'        => '$vardir/ssl',
     'logdir'        => '/var/log/puppet',
     'privatekeydir' => '$ssldir/private_keys { group = service }',
     'hostprivkey'   => '$privatekeydir/$certname.pem { mode = 640 }',
+    'certname'      => $cert_name,
     'ca_server'     => $ca_server
   }
-  $_conf_main_aio_ca       = {
+  $_conf_main_aio_ca = {
     'ssldir'        => '$vardir/ssl',
     'logdir'        => '/var/log/puppet',
     'privatekeydir' => '$ssldir/private_keys { group = service }',
-    'hostprivkey'   => '$privatekeydir/$certname.pem { mode = 640 }'
+    'hostprivkey'   => '$privatekeydir/$certname.pem { mode = 640 }',
+    'certname'      => $cert_name
   }
   $_conf_agent_aio_catalog = {
     'classfile'   => '$vardir/classes.txt',
@@ -61,36 +63,31 @@ class puppet_stack::puppet {
     'report'      => true,
     'listen'      => false,
     'pluginsync'  => true,
-    'certname'    => $cert_name,
     'server'      => $cert_name
   }
-  $_conf_agent_ca          = {
+  $_conf_agent_ca = {
     'classfile'   => '$vardir/classes.txt',
     'localconfig' => '$vardir/localconfig',
     'report'      => true,
     'listen'      => false,
     'pluginsync'  => true,
-    'certname'    => $cert_name
   }
-  $_conf_master_aio        = {
-    'manifest'        => '$confdir/manifests/',
-    'modulepath'      => '$confdir/modules',
-    'ca'              => true,
-    'certname'        => $cert_name,
-    'autosign'        => '/etc/puppet/autosign.conf',
-    'reports'         => $log
-  }
-  $_conf_master_catalog    = {
-    'manifest'        => '$confdir/manifests/',
-    'modulepath'      => '$confdir/modules',
-    'ca'              => false,
-    'certname'        => $cert_name,
-    'reports'         => $log
-  }
-  $_conf_master_ca         = {
+  $_conf_master_aio = {
+    'manifest'   => '$confdir/manifests/',
+    'modulepath' => '$confdir/modules',
     'ca'         => true,
-    'certname'   => $cert_name,
-    'autosign'   => '/etc/puppet/autosign.conf'
+    'autosign'   => '/etc/puppet/autosign.conf',
+    'reports'    => $log
+  }
+  $_conf_master_catalog = {
+    'manifest'   => '$confdir/manifests/',
+    'modulepath' => '$confdir/modules',
+    'ca'         => false,
+    'reports'    => $log
+  }
+  $_conf_master_ca = {
+    'ca'       => true,
+    'autosign' => '/etc/puppet/autosign.conf'
   }
 
   if ($::puppet_stack::conf_main == {}) {
