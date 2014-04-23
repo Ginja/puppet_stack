@@ -1,5 +1,6 @@
 class puppet_stack::smartproxy {
   $rvm_prefix       = $::puppet_stack::rvm_prefix
+  $puppet_vardir    = $::puppet_stack::puppet_vardir
   $cert_name        = $::puppet_stack::cert_name
   $smartp_user_home = $::puppet_stack::smartp_user_home
   $smartp_port      = $::puppet_stack::smartp_port
@@ -22,17 +23,22 @@ class puppet_stack::smartproxy {
     default => $::puppet_stack::smartp_log_file # You better make sure this folder exists
   }
   $smartp_ssl_cert = $::puppet_stack::smartp_ssl_cert ? {
-    ''      => "/var/lib/puppet/ssl/certs/${cert_name}.pem",
+    ''      => "${puppet_vardir}/ssl/certs/${cert_name}.pem",
     default => $::puppet_stack::smartp_ssl_cert,
   }
   $smartp_ssl_key = $::puppet_stack::smartp_ssl_key ? {
-    ''      => "/var/lib/puppet/ssl/private_keys/${cert_name}.pem",
+    ''      => "${puppet_vardir}/ssl/private_keys/${cert_name}.pem",
     default => $::puppet_stack::smartp_ssl_key,
   }
   if ($::puppet_stack::smartp_ssl_ca== '') {
-    $smartp_ssl_ca= $::puppet_stack::puppet_role ? {
-      'catalog' => '/var/lib/puppet/ssl/certs/ca.pem',
-      default   => '/var/lib/puppet/ssl/ca/ca_crt.pem',
+    if ($::puppet_stack::puppet == true) {
+      $smartp_ssl_ca = $::puppet_stack::puppet_role ? {
+        'catalog' => "${puppet_vardir}/ssl/certs/ca.pem",
+        default   => "${puppet_vardir}/ssl/ca/ca_crt.pem",
+      }
+    }
+    else {
+      $smartp_ssl_ca = "${puppet_vardir}/ssl/certs/ca.pem"
     }
   }
   else {
@@ -50,7 +56,7 @@ class puppet_stack::smartproxy {
       ':tftp'            => false,
       ':dns'             => false,
       ':puppetca'        => $puppetca,
-      ':ssldir'          => '/var/lib/puppet/ssl',
+      ':ssldir'          => "${puppet_vardir}/ssl",
       ':puppetdir'       => '/etc/puppet',
       ':puppet'          => $puppet,
       ':chefproxy'       => false,

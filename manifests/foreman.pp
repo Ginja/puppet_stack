@@ -1,6 +1,7 @@
 class puppet_stack::foreman {
+  $puppet_vardir        = $::puppet_stack::puppet_vardir
   $ssldir               = $::puppet_stack::puppet ? {
-    true  => '/var/lib/puppet',
+    true  => $puppet_vardir,
     false => '/etc/puppet',
   }
   $foreman_user_home    = $::puppet_stack::foreman_user_home
@@ -25,9 +26,9 @@ class puppet_stack::foreman {
     default => $::puppet_stack::foreman_ssl_key,
   }
   if ($::puppet_stack::foreman_ssl_ca == '') {
-    $foreman_ssl_ca = $::puppet_stack::puppet_role ? {
-      /^(aio|ca)$/ => "${ssldir}/ssl/ca/ca_crt.pem",
-      default      => "${ssldir}/ssl/certs/ca.pem", 
+    $foreman_ssl_ca = $::puppet_stack::puppet ? {
+      true    => "${ssldir}/ssl/ca/ca_crt.pem",
+      default => "${ssldir}/ssl/certs/ca.pem", 
     }
   }
   else {
