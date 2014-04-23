@@ -31,9 +31,14 @@ class puppet_stack::smartproxy {
     default => $::puppet_stack::smartp_ssl_key,
   }
   if ($::puppet_stack::smartp_ssl_ca== '') {
-    $smartp_ssl_ca= $::puppet_stack::puppet_role ? {
-      'catalog' => "${puppet_vardir}/ssl/certs/ca.pem",
-      default   => "${puppet_vardir}/ssl/ca/ca_crt.pem",
+    if ($::puppet_stack::puppet == true) {
+      $smartp_ssl_ca = $::puppet_stack::puppet_role ? {
+        'catalog' => "${puppet_vardir}/ssl/certs/ca.pem",
+        default   => "${puppet_vardir}/ssl/ca/ca_crt.pem",
+      }
+    }
+    else {
+      $smartp_ssl_ca = "${puppet_vardir}/ssl/certs/ca.pem"
     }
   }
   else {
