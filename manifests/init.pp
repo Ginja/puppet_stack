@@ -9,9 +9,10 @@ class puppet_stack (
   $global_passenger_options  = {},
   $puppet                    = true,
   $puppet_role               = $::puppet_stack::params::puppet_role,
-  $puppet_environments_dir   = $::puppet_stack::params::puppet_environments_dir,
+  $puppet_vardir             = $::puppet_stack::params::puppet_vardir,
   $cert_name                 = $::puppet_stack::params::cert_name,
   $ca_server                 = undef,
+  $pm_server                 = undef,
   $autosign_entries          = [],
   $site_pp_entries           = $::puppet_stack::params::site_pp_entries,
   $catalog_cert_autosign     = false,
@@ -31,7 +32,7 @@ class puppet_stack (
   $upload_facts_to_foreman   = false,
   $foreman_url               = $::puppet_stack::params::foreman_url,
   $report_to_foreman         = false,
-  $foreman                   = true,
+  $foreman                   = false,
   $foreman_repo              = $::puppet_stack::params::foreman_repo,
   $foreman_user              = $::puppet_stack::params::foreman_user,
   $foreman_user_home         = $::puppet_stack::params::foreman_user_home,
@@ -50,7 +51,7 @@ class puppet_stack (
   $foreman_ssl_cert          = '', # Default value comes from foreman.pp
   $foreman_ssl_key           = '', # Default value comes from foreman.pp
   $foreman_ssl_ca            = '', # Default value comes from foreman.pp
-  $smartproxy                = true,
+  $smartproxy                = false,
   $smartp_repo               = $::puppet_stack::params::smartp_repo,
   $smartp_user               = $::puppet_stack::params::smartp_user,
   $smartp_user_home          = $::puppet_stack::params::smartp_user_home,
@@ -64,7 +65,7 @@ class puppet_stack (
   $smartp_ssl_key            = '', # Default value comes from smartproxy.pp
   $smartp_ssl_ca             = '', # Default value comes from smartproxy.pp
 ) inherits puppet_stack::params {
-  validate_re($ruby_vers, 'ruby-\d[.]\d[.]\d-p\d\d\d', 'The ruby_vers parameter did not match a valid Ruby version (ex: \'ruby-2.0.0-p451\')')
+  validate_re($ruby_vers, 'ruby-\d[.]\d[.]\d-p\d+', 'The ruby_vers parameter did not match a valid Ruby version (ex: \'ruby-2.0.0-p451\')')
   validate_re($passenger_vers, '\d[.]\d[.]\d+', 'The passenger_vers parameter must be numerical (ex: \'4.0.40\')')
   validate_string($apache_user)
   validate_string($http_dir)
@@ -75,14 +76,37 @@ class puppet_stack (
   # PUPPET #
   validate_bool($puppet)
   validate_re($puppet_role, ['^aio$', '^catalog$', '^ca$'], 'The puppet_role parameter did not match one of these values: "aio", "catalog", "ca"')
-  validate_string($puppet_environments_dir)
+  validate_string($puppet_vardir)
   validate_string($cert_name)
-  if ($puppet_role == 'catalog') {
+  if ($puppet_role == 'catalog')
+  and ($conf_main == {}) {
     validate_string($ca_server)
     # validate_string DOES NOT catch undef, like its documentation says it does
     # https://github.com/puppetlabs/puppetlabs-stdlib
     if ($ca_server == undef) {
-      fail('The ca_server parameter cannot be left undefined when puppet_role is set to catalog')
+      fail('The ca_server parameter cannot be left undefined when puppet_role is set to catalog, and the default value for conf_main is being used. Please set this parameter to the FQDN of your Puppet CA Master, or specify "ca_server" in the conf_main hash.')
+    }
+  }
+  elsif ($conf_main != {})  {
+    unless has_key($conf_main, 'ca_server') {
+      fail('The conf_main hash shoud contain a "ca_server" key.')
+    }
+  }
+  if ($puppet_role == 'ca')
+  and ($conf_main == {}) {
+    unless has_key($conf_agent, 'server') {    
+      validate_string($pm_server)
+      # validate_string DOES NOT catch undef, like its documentation says it does
+      # https://github.com/puppetlabs/puppetlabs-stdlib
+      if ($pm_server == undef) {
+        fail('The pm_server parameter cannot be left undefined when puppet_role is set to ca, and the default value for conf_main is being used. Please set this parameter to the FQDN of your Puppet Catalog Master, or specify "server" in either the conf_{main,agent} hash.')
+      }
+    }
+  }
+  elsif ($conf_main != {}) {
+    unless has_key($conf_main, 'server')
+    or has_key ($conf_agent, 'server') {
+      fail('The conf_main or conf_agent hash should contain a "server" key.')
     }
   }
   validate_array($autosign_entries)

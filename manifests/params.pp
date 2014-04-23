@@ -22,7 +22,7 @@ class puppet_stack::params {
 
   # PUPPET MASTER #
   $puppet_role               = 'aio'
-  $puppet_environments_dir   = 'environments'
+  $puppet_vardir             = '/var/lib/puppet'
   $cert_name                 = $::fqdn
   $site_pp_entries           = [ 'node default {}' ]
   $puppet_passenger_app_root = '/etc/puppet/rack'

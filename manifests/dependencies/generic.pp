@@ -1,4 +1,5 @@
 class puppet_stack::dependencies::generic {
+  $puppet_vardir = $::puppet_stack::puppet_vardir
 
   rvm_system_ruby { $::puppet_stack::ruby_vers:
       ensure      => 'present',
@@ -51,9 +52,17 @@ class puppet_stack::dependencies::generic {
           ensure  => 'present',
           comment => 'Puppet Daemon User',
           gid     => 'puppet',
-          home    => '/var/lib/puppet',
+          home    => $puppet_vardir,
           shell   => '/sbin/nologin',
         }
+    }
+    
+    file { $puppet_vardir: 
+      ensure  => 'directory',
+      owner   => 'puppet',
+      group   => 'puppet',
+      mode    => '0755',
+      require => User['puppet'],
     }
 
     unless defined(Apache::Listen['8140']) {

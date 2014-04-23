@@ -1,5 +1,6 @@
 class puppet_stack::puppet::passenger {
   $puppet_role               = $::puppet_stack::puppet_role
+  $puppet_vardir             = $::puppet_stack::puppet_vardir
   $catalog_cert_autosign     = $::puppet_stack::catalog_cert_autosign
   $puppet_passenger_app_root = $::puppet_stack::puppet_passenger_app_root
   $puppet_passenger_doc_root = $::puppet_stack::puppet_passenger_doc_root
@@ -34,11 +35,11 @@ class puppet_stack::puppet::passenger {
 
   # Could copy from puppet gem, but this is more managable
   file { "${puppet_passenger_app_root}/config.ru":
-    ensure => 'file',
-    owner  => 'puppet',
-    group  => 'puppet',
-    mode   => '0444',
-    source => 'puppet:///modules/puppet_stack/puppet/config.ru',
+    ensure  => 'file',
+    owner   => 'puppet',
+    group   => 'puppet',
+    mode    => '0444',
+    content => template('puppet_stack/puppet/config.ru.erb'),
   }
 
   file { "${http_dir}/conf.d/puppet_master.conf":
