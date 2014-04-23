@@ -7,6 +7,8 @@ hosts.each do |host|
   on host, "mkdir -p #{host['distmoduledir']}"
   # So $::fqdn isn't blank
   on host, "grep 'domain' /etc/resolv.conf || echo 'domain local' >> /etc/resolv.conf"
+  # So puppet agent -t tests will run properly
+  on host, "sed -i 's/puppet-stack/puppet-stack.local/' /etc/hosts"
 end
 
 RSpec.configure do |c|
