@@ -52,6 +52,7 @@ class puppet_stack::puppet {
   # You'll need to specify all puppet_ssl_* params, if ssldir is not $vardir/ssl
   $_empty_hash = {}
   $_conf_main_catalog = {
+    'vardir'        => $puppet_vardir,
     'ssldir'        => '$vardir/ssl',
     'logdir'        => '/var/log/puppet',
     'privatekeydir' => '$ssldir/private_keys { group = service }',
@@ -61,6 +62,7 @@ class puppet_stack::puppet {
     'ca_server'     => $ca_server
   }
   $_conf_main_aio_ca = {
+    'vardir'        => $puppet_vardir,
     'ssldir'        => '$vardir/ssl',
     'logdir'        => '/var/log/puppet',
     'privatekeydir' => '$ssldir/private_keys { group = service }',
