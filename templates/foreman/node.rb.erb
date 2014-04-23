@@ -14,7 +14,7 @@
 # If copying this template by hand, replace the settings below including the angle brackets
 SETTINGS = {
   :url          => "<%= @foreman_url %>", # e.g. https://foreman.example.com
-  :puppetdir    => "<%= `echo ~`.chomp %>", # e.g. /var/lib/puppet
+  :puppetdir    => "<%= @puppet_vardir %>", # e.g. /var/lib/puppet
   :puppetuser   => 'puppet', # e.g. puppet
   :facts        => "<%= @upload_facts_to_foreman %>", # true/false to upload facts
   :timeout      => 10,

@@ -1,4 +1,5 @@
 class puppet_stack::puppet {
+  $puppet_vardir           = $::puppet_stack::puppet_vardir
   $report_to_foreman       = $::puppet_stack::report_to_foreman
   $puppet_role             = $::puppet_stack::puppet_role
   $cert_name               = $::puppet_stack::cert_name
@@ -18,8 +19,8 @@ class puppet_stack::puppet {
 
   if ($::puppet_stack::puppet_ssl_chain == '') {
     $puppet_ssl_chain = $puppet_role ? {
-      'catalog' => '/var/lib/puppet/ssl/certs/ca.pem',
-      default  => '/var/lib/puppet/ssl/ca/ca_crt.pem',
+      'catalog' => "${puppet_vardir}/ssl/certs/ca.pem",
+      default   => "${puppet_vardir}/ssl/ca/ca_crt.pem",
     }
   }
   else {
@@ -27,23 +28,23 @@ class puppet_stack::puppet {
   }
   if ($::puppet_stack::puppet_ssl_ca == '') {
     $puppet_ssl_ca = $puppet_role ? {
-      'catalog' => '/var/lib/puppet/ssl/certs/ca.pem',
-      default  => '/var/lib/puppet/ssl/ca/ca_crt.pem',
+      'catalog' => "${puppet_vardir}/ssl/certs/ca.pem",
+      default  => "${puppet_vardir}/ssl/ca/ca_crt.pem",
     }
   }
   else {
     $puppet_ssl_ca = $::puppet_stack::puppet_ssl_ca
   }
   $puppet_ssl_cert = $::puppet_stack::puppet_ssl_cert ? {
-    ''      => "/var/lib/puppet/ssl/certs/${cert_name}.pem",
+    ''      => "${puppet_vardir}/ssl/certs/${cert_name}.pem",
     default => $::puppet_stack::puppet_ssl_cert,
   }
   $puppet_ssl_key = $::puppet_stack::puppet_ssl_key ? {
-    ''      => "/var/lib/puppet/ssl/private_keys/${cert_name}.pem",
+    ''      => "${puppet_vardir}/ssl/private_keys/${cert_name}.pem",
     default => $::puppet_stack::puppet_ssl_key,
   }
   $puppet_ssl_ca_revoc = $::puppet_stack::puppet_ssl_ca_revoc ? {
-    ''      => '/var/lib/puppet/ssl/ca/ca_crl.pem',
+    ''      => "${puppet_vardir}/ssl/ca/ca_crl.pem",
     default => $::puppet_stack::puppet_ssl_ca_revoc
   }
   # Puppet can't support hash literals in selectors yet...

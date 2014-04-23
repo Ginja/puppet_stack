@@ -1,6 +1,7 @@
 class puppet_stack::foreman {
+  $puppet_vardir        = $::puppet_stack::puppet_vardir
   $ssldir               = $::puppet_stack::puppet ? {
-    true  => '/var/lib/puppet',
+    true  => $puppet_vardir,
     false => '/etc/puppet',
   }
   $foreman_user_home    = $::puppet_stack::foreman_user_home

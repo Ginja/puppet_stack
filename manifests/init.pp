@@ -9,6 +9,7 @@ class puppet_stack (
   $global_passenger_options  = {},
   $puppet                    = true,
   $puppet_role               = $::puppet_stack::params::puppet_role,
+  $puppet_vardir             = $::puppet_stack::params::puppet_vardir,
   $cert_name                 = $::puppet_stack::params::cert_name,
   $ca_server                 = undef,
   $pm_server                 = undef,
@@ -75,6 +76,7 @@ class puppet_stack (
   # PUPPET #
   validate_bool($puppet)
   validate_re($puppet_role, ['^aio$', '^catalog$', '^ca$'], 'The puppet_role parameter did not match one of these values: "aio", "catalog", "ca"')
+  validate_string($puppet_vardir)
   validate_string($cert_name)
   if ($puppet_role == 'catalog')
   and ($conf_main == {}) {

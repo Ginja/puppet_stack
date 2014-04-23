@@ -4,6 +4,7 @@ class puppet_stack::puppet::role::ca {
   $puppet_role    = 'ca'
   $rvm_ruby_root  = "${rvm_prefix}/gems/${ruby_vers}"
   $puppet_cmd     = "${rvm_ruby_root}/bin/puppet"
+  $puppet_vardir  = $::puppet_stack::puppet_vardir
   $cert_name      = $::puppet_stack::cert_name
   # Graciously borrowed from https://github.com/stephenrjohnson/puppetmodule/blob/master/manifests/passenger.pp
   $cert_clean_cmd = "${puppet_cmd} cert clean ${cert_name}"
@@ -62,22 +63,22 @@ class puppet_stack::puppet::role::ca {
     require => File['/etc/puppet'],
   }
 
-  file { '/var/lib/puppet/reports':
+  file { "${puppet_vardir}/reports":
     ensure => 'directory',
     owner  => 'puppet',
     group  => 'puppet',
     mode   => '0750',
   }
 
-  file { '/var/lib/puppet/ssl':
+  file { "${puppet_vardir}/ssl":
     ensure => 'directory',
     owner  => 'puppet',
     group  => 'puppet',
     mode   => '0771',
-    before => File['/var/lib/puppet/ssl/ca'],
+    before => File["${puppet_vardir}/ssl/ca"],
   }
 
-  file{ [ '/var/lib/puppet/ssl/ca', '/var/lib/puppet/ssl/ca/requests' ]:
+  file{ [ "${puppet_vardir}/ssl/ca", "${puppet_vardir}/ssl/ca/requests" ]:
     ensure => 'directory',
     owner  => 'puppet',
     group  => 'puppet',
