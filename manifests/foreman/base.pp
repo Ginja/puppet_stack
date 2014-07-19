@@ -43,7 +43,7 @@ class puppet_stack::foreman::base {
   }
 
   exec { 'foreman_bundle_install':
-    command     => "${bundle_install} && ${touch_complete}",
+    command     => "${rvm_prefix}/bin/rvm ${ruby_vers} do ${bundle_install} && ${touch_complete}",
     user        => $foreman_user,
     environment => [ "HOME=${foreman_user_home}", ],
     cwd         => $foreman_app_dir,
