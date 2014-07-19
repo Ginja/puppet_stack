@@ -17,7 +17,7 @@ class puppet_stack::dependencies::rhel {
   exec { 'yum_group_install':
     command   => 'yum -y groupinstall "Development tools"',
     path      => "${rvm_prefix}/bin:/usr/bin:/usr/sbin:/bin",
-    unless    => 'yum grouplist "Development tools" | grep "^Installed Groups"',
+    unless    => 'yum grouplist "Development tools" | grep "^Installed"',
     timeout   => '1800',
     logoutput => 'on_failure',
     before    => Exec['install_apache_passenger_module'],
