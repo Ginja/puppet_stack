@@ -2,7 +2,7 @@ class puppet_stack::smartproxy::base {
   $rvm_prefix       = $::puppet_stack::rvm_prefix
   $ruby_vers        = $::puppet_stack::ruby_vers
   $bundle_install   = 'bundle install --path vendor'
-  $echo_vers        = "echo ${ruby_vers} > vendor/.bundle.install.complete"
+  $touch_complete        = "echo ${ruby_vers} > vendor/.bundle.install.complete"
   $smartp_user      = $::puppet_stack::smartp_user
   $smartp_user_home = $::puppet_stack::smartp_user_home
   $smartp_repo      = $::puppet_stack::smartp_repo
@@ -37,7 +37,7 @@ class puppet_stack::smartproxy::base {
   }
 
   exec { 'smartproxy_bundle_install':
-    command     => "${bundle_install} && ${echo_vers}",
+    command     => "${rvm_prefix}/bin/rvm ${ruby_vers} do ${bundle_install} && ${touch_complete}",
     user        => $smartp_user,
     path        => "${rvm_prefix}/gems/${ruby_vers}/bin:/usr/bin:/bin",
     cwd         => $smartp_app_dir,

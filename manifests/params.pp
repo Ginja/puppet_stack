@@ -1,7 +1,7 @@
 class puppet_stack::params {
-  # Because we use contain
-  validate_re($::puppetversion, '^3[.](4|5)[.]\d+', "The puppet_stack module requires a Puppet version of 3.4.0+ - version: ${::puppetversion}")
-  # Because 1.8.* should not be used anymore. They're EOL!
+  # 3.4.x because we use contain
+  validate_re($::puppetversion, '^3[.](4|5|6)[.]\d+', "Invalid Puppet version. The puppet_stack module will only run on versions that have been tested (=>3.4.x <=3.6.x) - version: ${::puppetversion}. Modify at your own risk.")
+  # Because 1.8.x should not be used anymore. They're all EOL!
   validate_re($::rubyversion, '^(1|2)[.][^8][.]\d+', "You should not be using Ruby ${::rubyversion} with this module. Please install a newer version of Ruby, or just use your available distro packages.")
 
   # Failures should be caught by puppet_stack::dependecies class
@@ -29,7 +29,7 @@ class puppet_stack::params {
   $puppet_passenger_doc_root = '/etc/puppet/rack/public'
 
   # FOREMAN #
-  $foreman_repo              = 'https://github.com/theforeman/foreman.git -b 1.4-stable'
+  $foreman_repo              = 'https://github.com/theforeman/foreman.git -b 1.5-stable'
   $foreman_user              = 'foreman'
   $foreman_user_home         = '/usr/share/foreman'
   $foreman_settings          = {
@@ -50,7 +50,7 @@ class puppet_stack::params {
   $foreman_url               = "https://${::fqdn}"
 
   # SMART PROXY #
-  $smartp_repo              = 'https://github.com/theforeman/smart-proxy.git -b develop'
+  $smartp_repo              = 'https://github.com/theforeman/smart-proxy.git -b 1.5-stable'
   $smartp_user              = 'smartproxy'
   $smartp_user_home         = '/usr/share/smartproxy'
   $smartp_port              = '8443'
