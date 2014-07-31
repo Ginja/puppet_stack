@@ -2,10 +2,10 @@ class puppet_stack::foreman::rake {
   $rails_env           = 'RAILS_ENV=production' # Not exposed
   $rvm_prefix          = $::puppet_stack::rvm_prefix
   $ruby_vers           = $::puppet_stack::ruby_vers
-  $bundle_path         = "${rvm_prefix}/gems/${ruby_vers}/bin"
-  $rake_db_migrate     = "${bundle_path}/bundle exec rake db:migrate ${rails_env}"
+  $rvm_do              = "${rvm_prefix}/bin/rvm ${ruby_vers} do"
+  $rake_db_migrate     = "${rvm_do} bundle exec rake db:migrate ${rails_env}"
   $touch_migrate       = "/bin/echo ${ruby_vers} > vendor/.rake.migrate.complete"
-  $rake_db_seed        = "${bundle_path}/bundle exec rake db:seed assets:precompile locale:pack ${rails_env}"
+  $rake_db_seed        = "${rvm_do} bundle exec rake db:seed assets:precompile locale:pack ${rails_env}"
   $touch_seed          = "/bin/echo ${ruby_vers} > vendor/.rake.seed.complete"
   $foreman_user        = $::puppet_stack::foreman_user
   $foreman_user_home   = $::puppet_stack::foreman_user_home
