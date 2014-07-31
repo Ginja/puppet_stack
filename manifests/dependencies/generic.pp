@@ -29,6 +29,17 @@ class puppet_stack::dependencies::generic {
         require      => Rvm_system_ruby[$::puppet_stack::ruby_vers],
       }
     }
+    
+    # Needed for Postgresql module
+    if ($::puppet_stack::foreman == true)
+    and ($::puppet_stack::foreman_db_adapter == 'postgresql')
+    and ($::puppet_stack::foreman_db_host == 'localhost') {
+      rvm_gem { 'ruby-augeas':
+        ensure       => $::puppet_stack::rack_vers,
+        ruby_version => $::puppet_stack::ruby_vers,
+        require      => Rvm_system_ruby[$::puppet_stack::ruby_vers],
+      }
+    }
 
     unless defined(Class['apache']) {
       class { 'apache':
