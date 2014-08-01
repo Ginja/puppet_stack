@@ -75,7 +75,7 @@ class puppet_stack::puppet::role::catalog {
       owner   => 'root',
       group   => 'root',
       mode    => '0555',
-      content => template('puppet_stack/foreman/node.rb.erb'),
+      source  => 'puppet:///modules/puppet_stack/foreman/node.rb',
       require => File['/etc/puppet'],
     }
   }
@@ -86,7 +86,19 @@ class puppet_stack::puppet::role::catalog {
       owner   => 'root',
       group   => 'root',
       mode    => '0555',
-      content => template('puppet_stack/foreman/foreman.rb.erb'),
+      source  => 'puppet:///modules/puppet_stack/foreman/foreman.rb',
+      require => File['/etc/puppet'],
+    }
+  }
+  
+  if ($report_to_foreman == true)
+  or ($use_foreman_as_an_enc == true) {
+    file { '/etc/puppet/foreman.yaml':
+      ensure  => 'file',
+      owner   => 'root',
+      group   => 'root',
+      mode    => '0555',
+      content => template('puppet_stack/foreman/foreman.yaml.erb'),
       require => File['/etc/puppet'],
     }
   }

@@ -5,26 +5,7 @@
 #####################
 
 # Original copy
-# https://raw.github.com/theforeman/puppet-foreman/master/templates/external_node_v2.rb.erb
-
-<%- @foreman_ssl_ca == '' ? ssl_ca = @puppet_ssl_ca : ssl_ca = @foreman_ssl_ca -%>
-<%- @foreman_ssl_cert == '' ? ssl_cert = @puppet_ssl_cert : ssl_cert = @foreman_ssl_cert -%>
-<%- @foreman_ssl_key == '' ? ssl_key = @puppet_ssl_key : ssl_key = @foreman_ssl_key -%>
-
-# If copying this template by hand, replace the settings below including the angle brackets
-SETTINGS = {
-  :url          => "<%= @foreman_url %>", # e.g. https://foreman.example.com
-  :puppetdir    => "<%= @puppet_vardir %>", # e.g. /var/lib/puppet
-  :puppetuser   => 'puppet', # e.g. puppet
-  :facts        => "<%= @upload_facts_to_foreman %>", # true/false to upload facts
-  :timeout      => 10,
-  :threads      => nil,
-  # if CA is specified, remote Foreman host will be verified
-  :ssl_ca       => "<%= ssl_ca  -%>", # e.g. /var/lib/puppet/ssl/certs/ca.pem
-  # ssl_cert and key are required if require_ssl_puppetmasters is enabled in Foreman
-  :ssl_cert     => "<%= ssl_cert -%>", # e.g. /var/lib/puppet/ssl/certs/FQDN.pem
-  :ssl_key      => "<%= ssl_key -%>"  # e.g. /var/lib/puppet/ssl/private_keys/FQDN.pem
-}
+# https://github.com/theforeman/puppet-foreman/blob/master/files/external_node_v2.rb
 
 # Script usually acts as an ENC for a single host, with the certname supplied as argument
 #   if 'facts' is true, the YAML facts for the host are uploaded
@@ -33,14 +14,18 @@ SETTINGS = {
 # If --push-facts is given as the only arg, it uploads facts for all hosts and then exits.
 # Useful in scenarios where the ENC isn't used.
 
-### Do not edit below this line
+require 'yaml'
+
+$settings_file = "/etc/puppet/foreman.yaml"
+
+SETTINGS = YAML.load_file($settings_file)
 
 def url
-  SETTINGS[:url] || raise("Must provide URL - please edit file")
+  SETTINGS[:url] || raise("Must provide URL in #{$settings_file}")
 end
 
 def puppetdir
-  SETTINGS[:puppetdir] || raise("Must provide puppet base directory - please edit file")
+  SETTINGS[:puppetdir] || raise("Must provide puppet base directory in #{$settings_file}")
 end
 
 def puppetuser
@@ -53,7 +38,7 @@ def stat_file(certname)
 end
 
 def tsecs
-  SETTINGS[:timeout] || 3
+  SETTINGS[:timeout] || 10
 end
 
 def thread_count
@@ -88,7 +73,6 @@ require 'net/http'
 require 'net/https'
 require 'fileutils'
 require 'timeout'
-require 'yaml'
 begin
   require 'json'
 rescue LoadError
