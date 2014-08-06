@@ -15,7 +15,7 @@ class puppet_stack::foreman::rake {
     user        => $foreman_user,
     environment => [ "HOME=${foreman_user_home}", ],
     cwd         => $foreman_app_dir,
-    logoutput   => on_failure,
+    logoutput   => 'on_failure',
     creates     => "${foreman_app_dir}/vendor/.rake.migrate.complete",
     subscribe   => [ Exec['foreman_bundle_install'], File["${foreman_app_dir}/config/database.yml" ] ],
   }
@@ -23,7 +23,7 @@ class puppet_stack::foreman::rake {
     user        => $foreman_user,
     environment => [ "HOME=${foreman_user_home}", ],
     cwd         => $foreman_app_dir,
-    logoutput   => on_failure,
+    logoutput   => 'on_failure',
     creates     => "${foreman_app_dir}/vendor/.rake.seed.complete",
     subscribe   => [ Exec['foreman_bundle_install'], File["${foreman_app_dir}/config/database.yml" ] ],
     require     => Exec["${rake_db_migrate} && ${touch_migrate}"],

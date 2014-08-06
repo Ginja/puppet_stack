@@ -89,7 +89,7 @@ class puppet_stack::puppet::role::ca {
   exec { 'generate_ca_cert':
     command   => "${cert_clean_cmd} ; ${cert_gen_cmd} && ${cert_sign_cmd} && ${cert_find_cmd}",
     unless    => "/usr/bin/test -f `${puppet_cmd} config print ssldir`/certs/${cert_name}.pem",
-    logoutput => on_failure,
+    logoutput => 'on_failure',
     require   => File['/etc/puppet/puppet.conf'],
   }
 }

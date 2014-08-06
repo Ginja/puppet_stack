@@ -7,7 +7,7 @@ class puppet_stack::foreman::base {
     default      => '--without test pg mysql2',
   }
   $bundle_install      = "bundle install ${without_gems} --path vendor"
-  $touch_complete      = "echo ${ruby_vers} > vendor/.bundle.install.complete"
+  $touch_complete      = "echo ${ruby_vers} > vendor/.${ruby_vers}.bundle.install.complete"
   $foreman_user      = $::puppet_stack::foreman_user
   $foreman_user_home = $::puppet_stack::foreman_user_home
   $foreman_repo      = $::puppet_stack::foreman_repo
@@ -18,7 +18,7 @@ class puppet_stack::foreman::base {
     command   => "/usr/bin/git clone ${foreman_repo}",
     user      => $::puppet_stack::foreman_user,
     cwd       => $foreman_user_home,
-    logoutput => on_failure,
+    logoutput => 'on_failure',
     creates   => $foreman_app_dir,
   }
 

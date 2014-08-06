@@ -2,7 +2,7 @@ class puppet_stack::smartproxy::base {
   $rvm_prefix       = $::puppet_stack::rvm_prefix
   $ruby_vers        = $::puppet_stack::ruby_vers
   $bundle_install   = 'bundle install --path vendor'
-  $touch_complete        = "echo ${ruby_vers} > vendor/.bundle.install.complete"
+  $touch_complete   = "echo ${ruby_vers} > vendor/.${ruby_vers}.bundle.install.complete"
   $smartp_user      = $::puppet_stack::smartp_user
   $smartp_user_home = $::puppet_stack::smartp_user_home
   $smartp_repo      = $::puppet_stack::smartp_repo
@@ -15,7 +15,7 @@ class puppet_stack::smartproxy::base {
     path    => "${rvm_prefix}/gems/${ruby_vers}/bin:/usr/bin:/bin",
     cwd     => $smartp_user_home,
     creates => $smartp_app_dir,
-    logoutput => on_failure,
+    logoutput => 'on_failure',
   }
 
   file { "${smartp_app_dir}/config/settings.yml":
@@ -43,7 +43,7 @@ class puppet_stack::smartproxy::base {
     cwd         => $smartp_app_dir,
     environment => [ "HOME=${smartp_user_home}", ],
     timeout     => 1800,
-    logoutput   => on_failure,
+    logoutput   => 'on_failure',
     creates     => "${smartp_app_dir}/vendor/.bundle.install.complete",
     require     => File["${smartp_app_dir}/config/settings.yml"],
   }

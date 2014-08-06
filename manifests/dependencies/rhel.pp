@@ -33,8 +33,8 @@ class puppet_stack::dependencies::rhel {
     path        => "${rvm_prefix}/bin:${rvm_prefix}/gems/${ruby_vers}/bin:/usr/bin:/usr/sbin:/bin",
     unless      => "find ${gempath}/passenger-${passenger_vers} -iname ${mod_so} -print | grep ${mod_so}",
     environment => [ 'HOME=/root', ],
-    timeout     => 1800,
-    logoutput   => on_failure,
+    timeout     => '1800',
+    logoutput   => 'on_failure',
     require     => Rvm_system_ruby[$::puppet_stack::ruby_vers],
   }
 
