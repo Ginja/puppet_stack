@@ -70,16 +70,7 @@ class puppet_stack::puppet {
     'server'        => $pm_server,
     'certname'      => $cert_name
   }
-  $_conf_agent_aio_catalog = {
-    'classfile'   => '$vardir/classes.txt',
-    'localconfig' => '$vardir/localconfig',
-    'report'      => true,
-    'listen'      => false,
-    'pluginsync'  => true,
-  }
-  $_conf_agent_ca = {
-    'classfile'   => '$vardir/classes.txt',
-    'localconfig' => '$vardir/localconfig',
+  $_conf_agent = {
     'report'      => true,
     'listen'      => false,
     'pluginsync'  => true,
@@ -114,8 +105,8 @@ class puppet_stack::puppet {
 
   if ($::puppet_stack::conf_agent == {}) {
       $conf_agent = $puppet_role ? {
-        /(aio|catalog)/ => $_conf_agent_aio_catalog,
-        'ca'            => $_conf_agent_ca,
+        /(aio|catalog)/ => $_conf_agent,
+        'ca'            => $_conf_agent,
         'none'          => $_empty_hash,
       }
   }
