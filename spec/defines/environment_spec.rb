@@ -117,7 +117,9 @@ describe 'puppet_stack::puppet::environment', :type => :define do
           'group'  => 'puppet',
           'mode'   => '0755',
         })
-        should contain_file('/etc/puppet/environments/production')
+        should contain_file('/etc/puppet/environments/production').with({
+          'ensure' => 'absent',
+        })
         should_not contain_file('/etc/puppet/environments/production/modules')
         should_not contain_file("/etc/puppet/environments/production/manifests")
       }

@@ -9,6 +9,8 @@ hosts.each do |host|
   on host, "grep 'domain' /etc/resolv.conf || echo 'domain local' >> /etc/resolv.conf"
   # So puppet agent -t tests will run properly
   on host, "sed -i 's/puppet-stack/puppet-stack.local/' /etc/hosts"
+  # Update RVM
+  on host, "rvm get head"
 end
 
 RSpec.configure do |c|
