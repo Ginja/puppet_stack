@@ -19,6 +19,7 @@ class puppet_stack::params {
   $rvm_prefix     = '/usr/local/rvm'
   $bundler_vers   = 'present'
   $rack_vers      = 'present'
+  $augeas_vers    = 'present'
 
   # PUPPET MASTER #
   $puppet_role               = 'aio'

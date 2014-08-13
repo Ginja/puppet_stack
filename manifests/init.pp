@@ -6,6 +6,7 @@ class puppet_stack (
   $rvm_prefix                = $::puppet_stack::params::rvm_prefix,
   $bundler_vers              = $::puppet_stack::params::bundler_vers,
   $rack_vers                 = $::puppet_stack::params::rack_vers,
+  $augeas_vers               = $::puppet_stack::params::augeas_vers,
   $global_passenger_options  = {},
   $puppet                    = true,
   $puppet_role               = $::puppet_stack::params::puppet_role,
