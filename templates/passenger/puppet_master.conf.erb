@@ -12,12 +12,15 @@
     SSLCertificateKeyFile   <%= @puppet_ssl_key %>
     SSLCertificateChainFile <%= @puppet_ssl_chain %>
     SSLCACertificateFile    <%= @puppet_ssl_ca %>
-    <%- unless @puppet_role == 'catalog' -%>
     SSLCARevocationFile     <%= @puppet_ssl_ca_revoc %>
-    <%- end -%>
-    SSLVerifyClient         optional
+    SSLVerifyClient         require
     SSLVerifyDepth          1
     SSLOptions              +StdEnvVars +ExportCertData
+    
+    # Turns on CRL checking
+    <IfVersion >= 2.4>
+      SSLCARevocationCheck 	chain
+    </IfVersion>
 
     # This header needs to be set if using a loadbalancer or proxy
     RequestHeader unset X-Forwarded-For
