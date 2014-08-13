@@ -27,6 +27,17 @@ class puppet_stack::dependencies::rhel {
     ensure => present,
     before => Exec['install_apache_passenger_module'],
   }
+  
+  # Needed for Postgresql module, but requires augeas-devel
+  if ($::puppet_stack::foreman == true)
+  and ($::puppet_stack::foreman_db_adapter == 'postgresql')
+  and ($::puppet_stack::foreman_db_host == 'localhost') {
+    rvm_gem { 'ruby-augeas':
+      ensure       => $::puppet_stack::augeas_vers,
+      ruby_version => $::puppet_stack::ruby_vers,
+      require      => Package[$packages],
+    }
+  }
 
   exec { 'install_apache_passenger_module':
     command     => "rvm ${ruby_vers} exec ${passenger_mod} --auto --languages ruby",
