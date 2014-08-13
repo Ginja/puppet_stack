@@ -9,8 +9,10 @@ end
 group :development, :test do
   gem 'rake'
   gem 'puppet-lint'
-  gem 'rspec-puppet', :github => 'rodjek/rspec-puppet', :ref => '03e94422fb9bbdd950d5a0bec6ead5d76e06616b'
+  gem 'rspec-puppet', :github => 'rodjek/rspec-puppet', :ref => '389f99ef666521fec1b4530fe69dc1ab84a060a8'
+  gem 'beaker'
   gem 'beaker-rspec', :require => false
   gem 'puppetlabs_spec_helper'
   gem 'puppet', puppetversion
+  gem 'pry'
 end
