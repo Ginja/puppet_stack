@@ -13,7 +13,7 @@
     SSLCertificateChainFile <%= @puppet_ssl_chain %>
     SSLCACertificateFile    <%= @puppet_ssl_ca %>
     SSLCARevocationFile     <%= @puppet_ssl_ca_revoc %>
-    SSLVerifyClient         require
+    SSLVerifyClient         optional
     SSLVerifyDepth          1
     SSLOptions              +StdEnvVars +ExportCertData
     
