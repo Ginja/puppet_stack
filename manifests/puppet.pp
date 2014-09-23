@@ -46,7 +46,7 @@ class puppet_stack::puppet {
     default => $::puppet_stack::puppet_ssl_key,
   }
   
-  if ($::puppet_stack::puppet_ssl_ca_revoc = '') {
+  if ($::puppet_stack::puppet_ssl_ca_revoc == '') {
     $puppet_ssl_ca_revoc = $::puppet_stack::puppet_role ? {
       'catalog' => "${puppet_vardir}/ssl/crl.pem",
       default   => "${puppet_vardir}/ssl/ca/ca_crl.pem",
