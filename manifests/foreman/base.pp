@@ -49,6 +49,6 @@ class puppet_stack::foreman::base {
     cwd         => $foreman_app_dir,
     timeout     => 1800,
     path        => "${bundle_path}:/usr/bin:/bin",
-    creates     => "${foreman_app_dir}/vendor/.bundle.install.complete",
+    creates     => "${foreman_app_dir}/vendor/.${ruby_vers}.bundle.install.complete",
   }
 }

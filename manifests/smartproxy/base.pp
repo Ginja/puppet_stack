@@ -44,7 +44,7 @@ class puppet_stack::smartproxy::base {
     environment => [ "HOME=${smartp_user_home}", ],
     timeout     => 1800,
     logoutput   => 'on_failure',
-    creates     => "${smartp_app_dir}/vendor/.bundle.install.complete",
+    creates     => "${smartp_app_dir}/vendor/.${ruby_vers}.bundle.install.complete",
     require     => File["${smartp_app_dir}/config/settings.yml"],
   }
 }
