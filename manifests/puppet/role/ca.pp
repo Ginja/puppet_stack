@@ -82,7 +82,7 @@ class puppet_stack::puppet::role::ca {
     ensure => 'directory',
     owner  => 'puppet',
     group  => 'puppet',
-    mode   => '0770',
+    mode   => '0755',
     before => Exec['generate_ca_cert'],
   }
 
