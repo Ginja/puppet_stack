@@ -12,13 +12,6 @@ class puppet_stack::puppet::role::ca {
   $cert_sign_cmd  = "${puppet_cmd} cert sign --allow-dns-alt-names ${cert_name}"
   $cert_find_cmd  = "${puppet_cmd} certificate --ca-location=local find ${cert_name}"
 
-  file { '/etc/puppet':
-    ensure => 'directory',
-    owner  => 'root',
-    group  => 'root',
-    mode   => '0755',
-  }
-
   file { '/etc/puppet/puppet.conf':
     ensure  => 'file',
     owner   => 'root',

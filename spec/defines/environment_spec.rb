@@ -70,7 +70,7 @@ describe 'puppet_stack::puppet::environment', :type => :define do
              'ensure' => 'directory',
              'owner'  => 'root',
              'group'  => 'puppet',
-             'mode'   => '0755',
+             'mode'   => '0775',
            })
            should contain_file('/etc/puppet/environments/production').with({
              'ensure' => 'directory',
@@ -115,7 +115,7 @@ describe 'puppet_stack::puppet::environment', :type => :define do
           'ensure' => 'directory',
           'owner'  => 'root',
           'group'  => 'puppet',
-          'mode'   => '0755',
+          'mode'   => '0775',
         })
         should contain_file('/etc/puppet/environments/production').with({
           'ensure' => 'absent',

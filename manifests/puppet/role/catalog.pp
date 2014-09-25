@@ -9,19 +9,13 @@ class puppet_stack::puppet::role::catalog {
   $use_foreman_as_an_enc   = $::puppet_stack::use_foreman_as_an_enc
   $catalog_cert_autosign   = $::puppet_stack::catalog_cert_autosign
   $cert_name               = $::puppet_stack::cert_name
-
-  file { '/etc/puppet':
-    ensure => 'directory',
-    owner  => 'root',
-    group  => 'root',
-    mode   => '0755',
-  }
   
+  # Puppet needs permission to create a production environment folder
   file { '/etc/puppet/environments': 
     ensure  => 'directory',
     owner   => 'root',
     group   => 'puppet',
-    mode    => '0755',
+    mode    => '0775',
     require => File['/etc/puppet'],
   }
 

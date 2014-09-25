@@ -13,19 +13,13 @@ class puppet_stack::puppet::role::aio {
   $cert_gen_cmd          = "${puppet_cmd} certificate --ca-location=local --dns_alt_names=puppet generate ${cert_name}"
   $cert_sign_cmd         = "${puppet_cmd} cert sign --allow-dns-alt-names ${cert_name}"
   $cert_find_cmd         = "${puppet_cmd} certificate --ca-location=local find ${cert_name}"
-
-  file { '/etc/puppet':
-    ensure => 'directory',
-    owner  => 'root',
-    group  => 'root',
-    mode   => '0755',
-  }
   
+  # Puppet needs permission to create a production environment folder
   file { '/etc/puppet/environments': 
     ensure  => 'directory',
     owner   => 'root',
     group   => 'puppet',
-    mode    => '0755',
+    mode    => '0775',
     require => File['/etc/puppet'],
   }
 
