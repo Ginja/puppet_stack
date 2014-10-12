@@ -12,7 +12,7 @@ class puppet_stack::foreman::base {
   $foreman_user_home = $::puppet_stack::foreman_user_home
   $foreman_repo      = $::puppet_stack::foreman_repo
   $foreman_app_dir   = $::puppet_stack::foreman::foreman_app_dir
-  $apache_user       = $::puppet_stack::params::apache_user
+  $apache_user       = $::puppet_stack::apache_user
 
   exec { 'foreman_clone_repo':
     command   => "/usr/bin/git clone ${foreman_repo}",

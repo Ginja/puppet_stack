@@ -714,7 +714,7 @@ What the [master] section of puppet.conf will look like afterwards:
 If true (defaults to false), will configure the Foreman.
 
 ####`foreman_repo`
-The git repository from which to clone the Foreman. Defaults to the 1.5-stable branch (https://github.com/theforeman/foreman.git -b 1.5-stable).
+The git repository from which to clone the Foreman. Defaults to the 1.6-stable branch (https://github.com/theforeman/foreman.git -b 1.6-stable).
 
 ####`foreman_user`
 The user that Passenger will run the Foreman under (defaults to foreman).
@@ -756,6 +756,12 @@ class { 'puppet_stack':
   ...
 }
 ```
+
+####`foreman_default_password`
+The default password for the admin user (defaults to changeme). This will only be used if the Foreman version is 1.6+. The default password for every other version is 'changeme'.
+
+####`foreman_try_rake_tasks`
+Specifies whether or not you want this module to attempt the Foreman's rake tasks (defaults to true). Reasons to set this to false are if you want to run them manually, or if you're bringing up a secondary instance and you're sharing a database.
 
 ####`foreman_db_adapter`
 The type of database adapter that the Foreman will use. Valid values are postgresql, and sqlite3 (default). If postgresql is specified, this module will use the puppetlabs-postgresql module to install and configure a database.
@@ -879,7 +885,7 @@ The SSL ca file that the Foreman will use. This value defaults to the one that P
 If false (defaults to true), will prevent smart-proxy from being configured.
 
 ####`smartp_repo`
-The git repository from which to clone smart-proxy. Defaults to the 1.5-stable branch (https://github.com/theforeman/smart-proxy.git -b 1.5-stable).
+The git repository from which to clone smart-proxy. Defaults to the 1.6-stable branch (https://github.com/theforeman/smart-proxy.git -b 1.6-stable).
 
 ####`smartp_user`
 The user that Passenger will run smart-proxy under (defaults to smartproxy).

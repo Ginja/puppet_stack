@@ -39,6 +39,8 @@ class puppet_stack (
   $foreman_user_home         = $::puppet_stack::params::foreman_user_home,
   $foreman_app_dir           = '', # Default value comes from foreman.pp
   $foreman_settings          = $::puppet_stack::params::foreman_settings,
+  $foreman_default_password  = $::puppet_stack::params::foreman_default_password,
+  $foreman_try_rake_tasks    = true,
   $foreman_db_adapter        = $::puppet_stack::params::foreman_db_adapter,
   $foreman_db_host           = $::puppet_stack::params::foreman_db_host,
   $foreman_db_pool           = $::puppet_stack::params::foreman_db_pool,
@@ -136,6 +138,8 @@ class puppet_stack (
   validate_string($foreman_user_home)
   validate_string($foreman_app_dir)
   validate_hash($foreman_settings)
+  validate_string($foreman_default_password)
+  validate_bool($foreman_try_rake_tasks)
   validate_re($foreman_db_adapter, ['^postgresql$', '^sqlite3$'], 'The foreman_db_type parameter did not match one of these values: "postgresql", "sqlite3"')
   validate_string($foreman_db_host)
   validate_string($foreman_db_pool)
