@@ -24,8 +24,13 @@ allow *
 path /report
 method save
 allow *
-<% end -%>
 
+# Allow authenticated nodes to get environment information:
+
+path /v2.0/environments
+method find
+allow *
+<% end -%>
 <%- if @puppet_role != 'catalog' -%>
 # Allow authenticated nodes to access the certificate revocation list:
 
