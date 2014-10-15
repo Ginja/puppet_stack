@@ -1,11 +1,11 @@
 define puppet_stack::smartproxy::config_file (
   $ensure,
-  $content,
-  $file  = $title,
-  $path  = '/usr/share/smartproxy/smart-proxy/config/settings.d',
-  $owner = 'smartproxy',
-  $group = 'smartproxy',
-  $mode  = '0444',
+  $content = { ':enabled' => false },
+  $file    = $title,
+  $path    = "${::puppet_stack::smartproxy::smartp_app_dir}/config/settings.d",
+  $owner   = 'smartproxy',
+  $group   = 'smartproxy',
+  $mode    = '0444',
 ) {
   validate_hash($content)
   validate_re($ensure, ['^present$', '^absent$'], 'The ensure parameter has to be one of the following values: present, absent')
@@ -37,8 +37,7 @@ define puppet_stack::smartproxy::config_file (
     group   => $group,
     mode    => $mode,
     content => template('puppet_stack/smartproxy/settings.yml.erb'),
-    force   => true,
     notify  => Exec['restart_smartproxy_app'],
-    require => Exec['smartproxy_clone_repo'],
+    require => [ Exec['smartproxy_clone_repo'], File["${::puppet_stack::smartproxy::smartp_app_dir}/config/settings.d"] ],
   }
 }
