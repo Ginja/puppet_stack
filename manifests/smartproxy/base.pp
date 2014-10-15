@@ -8,14 +8,26 @@ class puppet_stack::smartproxy::base {
   $smartp_repo      = $::puppet_stack::smartp_repo
   $smartp_app_dir   = $::puppet_stack::smartproxy::smartp_app_dir
   $apache_user      = $::puppet_stack::params::apache_user
+  $_settings        = $::puppet_stack::smartproxy::smartp_settings
 
   exec { 'smartproxy_clone_repo':
-    command => "/usr/bin/git clone ${smartp_repo}",
+    command => "/usr/bin/git clone ${smartp_repo[url]}",
     user    => $smartp_user,
     path    => "${rvm_prefix}/gems/${ruby_vers}/bin:/usr/bin:/bin",
     cwd     => $smartp_user_home,
     creates => $smartp_app_dir,
     logoutput => 'on_failure',
+  }
+  
+  unless ($smartp_repo[tag] == false) {
+    exec { 'smartproxy_checkout_version':
+      command     => "/usr/bin/git checkout -b ${smartp_repo[tag]}-checkout ${smartp_repo[tag]}",
+      user        => $::puppet_stack::smartp_user,
+      cwd         => $smartp_app_dir,
+      logoutput   => 'on_failure',
+      refreshonly => true,
+      subscribe   => Exec['smartproxy_clone_repo'],
+    }
   }
 
   file { "${smartp_app_dir}/config/settings.yml":

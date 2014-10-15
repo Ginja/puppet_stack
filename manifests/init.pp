@@ -133,7 +133,7 @@ class puppet_stack (
   validate_bool($report_to_foreman)
   # FOREMAN #
   validate_bool($foreman)
-  validate_string($foreman_repo)
+  validate_hash($foreman_repo)
   validate_string($foreman_user)
   validate_string($foreman_user_home)
   validate_string($foreman_app_dir)
@@ -159,7 +159,7 @@ class puppet_stack (
   validate_string($foreman_ssl_ca)
   # SMART-PROXY #
   validate_bool($smartproxy)
-  validate_string($smartp_repo)
+  validate_hash($smartp_repo)
   validate_string($smartp_user)
   validate_string($smartp_user_home)
   validate_string($smartp_port)

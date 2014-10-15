@@ -15,11 +15,22 @@ class puppet_stack::foreman::base {
   $apache_user       = $::puppet_stack::apache_user
 
   exec { 'foreman_clone_repo':
-    command   => "/usr/bin/git clone ${foreman_repo}",
+    command   => "/usr/bin/git clone ${foreman_repo[url]}",
     user      => $::puppet_stack::foreman_user,
     cwd       => $foreman_user_home,
     logoutput => 'on_failure',
     creates   => $foreman_app_dir,
+  }
+  
+  unless ($foreman_repo[tag] == false) {
+    exec { 'foreman_checkout_version':
+      command     => "/usr/bin/git checkout -b ${foreman_repo[tag]}-checkout ${foreman_repo[tag]}",
+      user        => $::puppet_stack::foreman_user,
+      cwd         => $foreman_app_dir,
+      logoutput   => 'on_failure',
+      refreshonly => true,
+      subscribe   => Exec['foreman_clone_repo'],
+    }
   }
 
   file { "${foreman_app_dir}/config/settings.yaml":

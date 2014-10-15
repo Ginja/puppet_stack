@@ -30,7 +30,10 @@ class puppet_stack::params {
   $puppet_passenger_doc_root = '/etc/puppet/rack/public'
 
   # FOREMAN #
-  $foreman_repo              = 'https://github.com/theforeman/foreman.git -b 1.6-stable'
+  $foreman_repo              = {
+                                 'url' => 'https://github.com/theforeman/foreman.git -b 1.6-stable',
+                                 'tag' => '1.6.1',
+                               }
   $foreman_user              = 'foreman'
   $foreman_user_home         = '/usr/share/foreman'
   $foreman_settings          = {
@@ -52,7 +55,10 @@ class puppet_stack::params {
   $foreman_url               = "https://${::fqdn}"
 
   # SMART PROXY #
-  $smartp_repo              = 'https://github.com/theforeman/smart-proxy.git -b 1.6-stable'
+  $smartp_repo              = {
+                                'url' => 'https://github.com/theforeman/smart-proxy.git -b 1.6-stable',
+                                'tag' => '1.6.1',
+                              }
   $smartp_user              = 'smartproxy'
   $smartp_user_home         = '/usr/share/smartproxy'
   $smartp_port              = '8443'
