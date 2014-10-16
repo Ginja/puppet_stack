@@ -29,6 +29,7 @@ class puppet_stack::foreman::base {
       cwd         => $foreman_app_dir,
       logoutput   => 'on_failure',
       refreshonly => true,
+      before      => [ File["${foreman_app_dir}/config/settings.yaml", "${foreman_app_dir}/config/database.yml"], Exec['foreman_bundle_install'] ],
       subscribe   => Exec['foreman_clone_repo'],
     }
   }

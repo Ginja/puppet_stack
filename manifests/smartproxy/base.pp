@@ -26,6 +26,7 @@ class puppet_stack::smartproxy::base {
       cwd         => $smartp_app_dir,
       logoutput   => 'on_failure',
       refreshonly => true,
+      before      => [ File["${smartp_app_dir}/config/settings.yml", '/etc/sudoers.d/smartproxy'], Exec['smartproxy_bundle_install'] ],
       subscribe   => Exec['smartproxy_clone_repo'],
     }
   }
