@@ -16,6 +16,7 @@ class puppet_stack (
   $pm_server                 = undef,
   $autosign_entries          = [],
   $site_pp_entries           = $::puppet_stack::params::site_pp_entries,
+  $auth_conf_entries         = '',
   $catalog_cert_autosign     = false,
   $conf_main                 = {}, # Default value comes from puppet.pp
   $conf_agent                = {}, # Default value comes from puppet.pp
@@ -114,6 +115,7 @@ class puppet_stack (
   }
   validate_array($autosign_entries)
   validate_array($site_pp_entries)
+  validate_string($auth_conf_entries)
   validate_bool($catalog_cert_autosign)
   validate_hash($conf_main)
   validate_hash($conf_agent)

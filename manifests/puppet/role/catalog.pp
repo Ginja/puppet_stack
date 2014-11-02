@@ -35,6 +35,7 @@ class puppet_stack::puppet::role::catalog {
     group   => 'root',
     mode    => '0444',
     content => template('puppet_stack/puppet/auth.conf.erb'),
+    notify  => Exec['restart_puppet'],
     require => File['/etc/puppet'],
   }
 
