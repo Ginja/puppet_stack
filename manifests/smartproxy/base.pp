@@ -22,7 +22,7 @@ class puppet_stack::smartproxy::base {
   unless ($smartp_repo[tag] == false) {
     exec { 'smartproxy_checkout_version':
       command     => "/usr/bin/git checkout -b ${smartp_repo[tag]}-checkout ${smartp_repo[tag]}",
-      user        => $::puppet_stack::smartp_user,
+      user        => $smartp_user,
       cwd         => $smartp_app_dir,
       logoutput   => 'on_failure',
       refreshonly => true,
