@@ -13,6 +13,7 @@
 4. [Parameters - A definition of each module parameter](#parameters)
   * [Class: puppet_stack](#class-puppet_stack)
   * [Define Type: puppet_stack::puppet::environment](#define-type-puppet_stackpuppetenvironment)
+  * [Define Type: puppet_stack::smartproxy::config_file](#define-type-puppet_stacksmartproxyconfig_file)
 5. [Additional Notes - Things to be aware of](#additional-notes)
 6. [Troubleshooting - What to do when things go awry](#troubleshooting)
   * [Tips](#tips)
@@ -138,36 +139,133 @@ This should certainly help, but you may find that additional SELINUX adjustments
 
 ###Sample Class Configurations
 
-An all-in-one Puppet Master, with the Foreman using a sqlite database, and smart-proxy:
-
-```puppet
-# ruby_vers must be specified with a patch number
-class { 'puppet_stack':
-  ruby_vers               => 'ruby-2.0.0-p451',
-  passenger_vers          => '4.0.40',
-  puppet_role             => 'aio',
-  use_foreman_as_an_enc   => true,
-  upload_facts_to_foreman => true,
-  report_to_foreman       => true,
-  foreman                 => true,
-  smartproxy              => true,
-}
-```
-
-An all-in-one Puppet Master, with the Foreman using a Postgres database, and smart-proxy:
+An all-in-one Puppet Master, with the Foreman using a Postgres database, and smart-proxy. This is an overly verbose declaration, but its intent is to show you what you can do.
 
 ```puppet
 class { 'puppet_stack':
   ruby_vers               => 'ruby-2.0.0-p451',
   passenger_vers          => '4.0.40',
+  global_passenger_options => {
+    'PassengerDefaultUser'        => 'apache',
+    'PassengerFriendlyErrorPages' => 'on',
+    'PassengerMaxPoolSize'        => '4',
+    'PassengerMaxRequests'        => '10000',
+  },
   puppet_role             => 'aio',
+  conf_main               => {
+    'vardir'        => '/var/lib/puppet',
+    'ssldir'        => '$vardir/ssl',
+    'logdir'        => '/var/log/puppet',
+    'privatekeydir' => '$ssldir/private_keys { group = service }',
+    'hostprivkey'   => '$privatekeydir/$certname.pem { mode = 640 }',
+    'certname'      => 'puppet3.domain.com',
+    'pluginsync'    => 'true',
+  },
+  conf_master             => {
+    'default_manifest' => './manifests',
+    # This enables directory environments in Puppet open source
+    'environmentpath'  => '$confdir/environments',
+    'reports'          => 'log, foreman',
+  },
+  conf_agent              => {
+    'report'      => 'true',
+    'listen'      => 'false',
+    'environment' => 'production',
+  },
+  puppet_vhost_options     => {
+    'PassengerHighPerformance' => 'on',
+    'PassengerMinInstances'    => '2',
+    'PassengerPreStart'        => 'https://puppet.domain.com:8140',
+  },
   use_foreman_as_an_enc   => true,
   upload_facts_to_foreman => true,
   report_to_foreman       => true,
   foreman                 => true,
+  foreman_repo            => {
+    'url' => 'https://github.com/theforeman/foreman.git -b 1.6-stable',
+    'tag' => '1.6.1',
+  },
   foreman_db_adapter      => 'postgresql',
-  foreman_db_password     => 'dbpassword',
+  foreman_db_host         => 'localhost',
+  foreman_db_name         => 'foreman',
+  foreman_db_user         => 'foreman',
+  foreman_db_password     => 'somedbpassword',
+  foreman_vhost_options   => {
+    'PassengerHighPerformance' => 'on',
+    'PassengerMinInstances'    => '2',
+    'PassengerPreStart'        => 'https://puppet.domain.com',
+  },
+  foreman_settings        => {
+    ':unattended'                              => false,
+    ':login'                                   => true,
+    ':require_ssl'                             => true,
+    ':locations_enabled'                       => false,
+    ':organizations_enabled'                   => false,
+    ':support_jsonp'                           => false,
+    ':restrict_registered_puppetmasters'       => true,
+    ':require_ssl_puppetmasters'               => true,
+    ':email_reply_address'                     => 'foreman-no-reply@domain.com',
+    ':trusted_puppetmaster_hosts'              => [ 'puppet3.domain.com' ],
+    ':foreman_url'                             => 'https://puppet3.domain.com',
+    ':unattended_url'                          => 'https://puppet3.domain.com',
+    ':create_new_host_when_facts_are_uploaded' => true,
+    ':create_new_host_when_report_is_uploaded' => true,
+    ':websockets_encrypt'                      => 'on',
+    ':websockets_ssl_cert'                     => '/var/lib/puppet/ssl/certs/puppet3.domain.com.pem',
+    ':websockets_ssl_key'                      => '/var/lib/puppet/ssl/private_keys/puppet3.domain.com.pem',
+    ':ssl_ca_file'                             => '/var/lib/puppet/ssl/ca/ca_crt.pem',
+    ':ssl_certificate'                         => '/var/lib/puppet/ssl/certs/puppet3.domain.com.pem',
+    ':ssl_priv_key'                            => '/var/lib/puppet/ssl/private_keys/puppet3.domain.com.pem',
+  },
   smart_proxy             => true,
+  smartp_repo             => {
+    'url' => 'https://github.com/theforeman/smart-proxy.git -b 1.6-stable',
+    'tag' => '1.6.1',
+  }
+  smartp_settings         => {
+    ':ssl_certificate' => '/var/lib/puppet/ssl/certs/puppet3.domain.com.pem',
+    ':ssl_ca_file'     => '/var/lib/puppet/ssl/ca/ca_crt.pem',
+    ':ssl_private_key' => '/var/lib/puppet/ssl/private_keys/puppet3.domain.com.pem',
+    ':trusted_hosts'   => [ 'puppet3.domain.com' ],
+    ':daemon'          => true,
+    ':https_port'      => '8443',
+    ':log_file'        => '/usr/share/smartproxy/smart-proxy/log/app.log',
+    ':log_level'       => 'ERROR',
+  },
+}
+
+# Creating directory or dynamic environments
+# May I suggest looking into r10k instead?
+
+puppet_stack::puppet::environment { 'production': 
+  ensure => 'present',
+}
+
+puppet_stack::puppet::environment { 'development': 
+  ensure => 'present',
+}
+
+# Specifying configuration files for smart-proxy
+
+puppet_stack::smartproxy::config_file { 'puppet.yml':
+  content => {
+    ':enabled'                    => true,
+    ':puppet_url'                 => 'https://puppet3.domain.com:8140',
+    ':puppet_ssl_ca'              => '/var/lib/puppet/ssl/ca/ca_crt.pem',
+    ':puppet_ssl_cert'            => '/var/lib/puppet/ssl/certs/puppet3.domain.com.pem',
+    ':puppet_ssl_key'             => '/var/lib/puppet/ssl/private_keys/puppet3.domain.com.pem',
+    ':puppet_use_environment_api' => true,
+  },
+}
+
+puppet_stack::smartproxy::config_file { 'puppetca.yml':
+  content => {
+    ':enabled'           => true,
+    ':ssldir'            => '/var/lib/puppet/ssl',
+    ':puppetdir'         => '/etc/puppet',
+    ':puppetca_use_sudo' => true,
+    ':sudo_command'      => '/usr/local/rvm/bin/rvmsudo',
+  },
 }
 ```
 
@@ -179,12 +277,23 @@ In the example below, we assume puppet-pm1.domain.com is our Puppet Master that 
 
 ```puppet
 class { 'puppet_stack':
-  ruby_vers      => 'ruby-2.0.0-p451',
-  passenger_vers => '4.0.40',
-  puppet_role    => 'ca',
-  pm_server      => 'puppet-pm1.domain.com',
-  foreman        => false,
-  smart_proxy    => true,
+  ruby_vers           => 'ruby-2.0.0-p451',
+  passenger_vers      => '4.0.40',
+  puppet_role         => 'ca',
+  pm_server           => 'puppet-pm1.domain.com',
+  foreman             => false,
+  smart_proxy         => true,
+  autosign_entries    => [ 'puppet3-pm1.domain.com' ],
+  smartp_settings     => {
+    ':ssl_certificate' => '/var/lib/puppet/ssl/certs/puppet3-ca.domain.com.pem',
+    ':ssl_ca_file'     => '/var/lib/puppet/ssl/ca/ca_crt.pem',
+    ':ssl_private_key' => '/var/lib/puppet/ssl/private_keys/puppet3-ca.domain.com.pem',
+    ':trusted_hosts'   => [ 'puppet3-pm1.domain.com' ],
+    ':daemon'          => true,
+    ':https_port'      => '8443',
+    ':log_file'        => '/usr/share/smartproxy/smart-proxy/log/app.log',
+    ':log_level'       => 'ERROR'
+  },
 }
 ```
 
@@ -192,7 +301,7 @@ A Puppet Catalog Master, with the Foreman, and smart-proxy:
 
 When bringing up a Catalog Master, you must set the ca_server attribute to the FQDN of your Puppet CA server. That is unless you're specifying your own [conf_master hash](#conf_master); in which case, you then must include a 'ca_server' key in the hash. 
 
-In the example below, we assume puppet-ca.domain.com is our CA server, and that it contains an autosign entry for our Catalog Master. If you do not wish to use autosigning, set catalog_cert_autosign to false, configure the certificate for your Catalog Master manually after the first Puppet run, and then start a second Puppet run to finish.
+In the example below, we assume puppet-ca.domain.com is our CA server, and that it contains an autosign entry for our Catalog Master (ex: puppet3-pm1.domain.com). If you do not wish to use autosigning, set [catalog_cert_autosign](#catalog_cert_autosign) to false, sign the certificate for your Catalog Master manually after the first Puppet run, and then start a second Puppet run to finish.
 
 ```puppet
 class { 'puppet_stack':
@@ -205,126 +314,46 @@ class { 'puppet_stack':
   upload_facts_to_foreman => true,
   report_to_foreman       => true,
   foreman                 => true,
+  foreman_db_adapter      => 'postgresql',
+  foreman_db_password     => 'dbpassword',
+  foreman_settings        => {
+    ':unattended'                              => false,
+    ':login'                                   => true,
+    ':require_ssl'                             => true,
+    ':locations_enabled'                       => false,
+    ':organizations_enabled'                   => false,
+    ':support_jsonp'                           => false,
+    ':restrict_registered_puppetmasters'       => true,
+    ':require_ssl_puppetmasters'               => true,
+    ':email_reply_address'                     => 'foreman-no-reply@domain.com',
+    ':trusted_puppetmaster_hosts'              => [ 'puppet3-pm1.domain.com', 'puppet3-ca.domain.com' ],
+    ':foreman_url'                             => 'https://puppet3-pm1.domain.com',
+    ':unattended_url'                          => 'https://puppet3-pm1.domain.com',
+    ':create_new_host_when_facts_are_uploaded' => true,
+    ':create_new_host_when_report_is_uploaded' => true,
+    ':websockets_encrypt'                      => 'on',
+    ':websockets_ssl_cert'                     => '/var/lib/puppet/ssl/certs/puppet3-pm1.domain.com.pem',
+    ':websockets_ssl_key'                      => '/var/lib/puppet/ssl/private_keys/puppet3-pm1.domain.com.pem',
+    ':ssl_ca_file'                             => '/var/lib/puppet/ssl/certs/ca.pem',
+    ':ssl_certificate'                         => '/var/lib/puppet/ssl/certs/puppet3-pm1.domain.com.pem',
+    ':ssl_priv_key'                            => '/var/lib/puppet/ssl/private_keys/puppet3-pm1.domain.com.pem',
+  },
   smart_proxy             => true,
-}
-```
-
-Here's an advance example. Let's say we want to scale out our Puppet infrastructure:
-
-* x1 Puppet CA server (puppet-ca.domain.com)
-* x2 Puppet Catalog Masters (puppet-pm{1,2}.domain.com), possibly behind a load balancer
-
-One of the Catalog Masters will include the Foreman, and the other will simply upload its client's facts & reports to it. Both Catalog Masters will have a smart-proxy instance so that the Foreman can import environments & modules from them. The Puppet CA server will also include a smart-proxy instance so that the Foreman can use it. Be aware that all smart-proxies will need to be added manually from within the Foreman after it's up (see the Foreman note in the [Additional Notes](#additional-notes) section).  
-
-Order of execution is key here. The Puppet CA server will need to come up first if you're attempting to autosign your Puppet Catalog Masters' certificate. Otherwise if you try to bring up your Catalog Masters first, and catalog_cert_autosign is set to true, they will not come up properly (httpd will fail to start due to missing certificates). It's nothing you can't recover from (just bring up your CA server, ensure autosign is configured, and then re-apply your manifest on each Catalog Master), but I think we all can agree that it's better when things just work the first time.
-
-#####puppet-ca.domain.com
-
-```puppet
-# If you specify custom smartp_settings, do not forget to precede each setting key with a ':'
-class { 'puppet_stack':
-  ruby_vers        => 'ruby-2.0.0-p451',
-  passenger_vers   => '4.0.40',
-  puppet_role      => 'ca',
-  pm_server        => 'puppet-pm1.domain.com', # Or at the load balancer
-  autosign_entries => ['puppet-pm1.domain.com', 'puppet-pm2.domain.com'],
-  foreman          => false,
-  smartproxy       => true,
-  smartp_port      => '8443',
-  smartp_settings  => {
-    ':ssl_certificate' => '/var/lib/puppet/ssl/certs/puppet-ca.domain.com.pem',
-    ':ssl_ca_file'     => '/var/lib/puppet/ssl/certs/ca.pem',
-    ':ssl_private_key' => '/var/lib/puppet/ssl/private_keys/puppet-ca.domain.com.key',
-    ':trusted_hosts'   => ['puppet-pm1.domain.com', 'puppet-pm2.domain.com'],
-    ':daemon'          => true,
-    ':port'            => '8443',
-    ':sudo_command'    => '/usr/local/rvm/bin/rvmsudo',
-    ':tftp'            => false,
-    ':dns'             => false,
-    ':puppetca'        => true, # This should be true for the ca role
-    ':ssldir'          => '/var/lib/puppet/ssl',
-    ':puppetdir'       => '/etc/puppet',
-    ':puppet'          => false, # This should be false for the ca role
-    ':chefproxy'       => false,
-    ':bmc'             => false,
-    ':log_file'        => '/usr/share/smartproxy/smart-proxy/log/app.log', # The default location
-    ':log_level'       => 'ERROR'
-  }
-}
-```
-
-#####puppet-pm1.domain.com
-
-```puppet
-class { 'puppet_stack':
-  ruby_vers               => 'ruby-2.0.0-p451',
-  passenger_vers          => '4.0.40',
-  puppet_role             => 'catalog',
-  ca_server               => 'puppet-ca.domain.com',
-  catalog_cert_autosign   => true,
-  use_foreman_as_an_enc   => true,
-  upload_facts_to_foreman => true,
-  report_to_foreman       => true,
-  foreman                 => true,
-  smartproxy              => true,
   smartp_settings         => {
-    ':ssl_certificate' => '/var/lib/puppet/ssl/certs/puppet-pm1.domain.com.pem',
+    ':ssl_certificate' => '/var/lib/puppet/ssl/certs/puppet3-pm1.domain.com.pem',
     ':ssl_ca_file'     => '/var/lib/puppet/ssl/certs/ca.pem',
-    ':ssl_private_key' => '/var/lib/puppet/ssl/private_keys/puppet-pm1.domain.com.key',
-    ':trusted_hosts'   => ['puppet-pm2.domain.com', 'puppet-ca.domain.com'],
+    ':ssl_private_key' => '/var/lib/puppet/ssl/private_keys/puppet3-pm1.domain.com.pem',
+    ':trusted_hosts'   => [ 'puppet3-pm1.domain.com' ],
     ':daemon'          => true,
-    ':port'            => '8443',
-    ':sudo_command'    => '/usr/local/rvm/bin/rvmsudo',
-    ':tftp'            => false,
-    ':dns'             => false,
-    ':puppetca'        => false, # This should be false for the catalog role
-    ':ssldir'          => '/var/lib/puppet/ssl',
-    ':puppetdir'       => '/etc/puppet',
-    ':puppet'          => true, # This needs to be true for the aio, and catalog roles
-    ':chefproxy'       => false,
-    ':bmc'             => false,
+    ':https_port'      => '8443',
     ':log_file'        => '/usr/share/smartproxy/smart-proxy/log/app.log',
     ':log_level'       => 'ERROR'
-  }
+  },
 }
 ```
 
-#####puppet-pm2.domain.com
 
-```puppet
-class { 'puppet_stack':
-  ruby_vers               => 'ruby-2.0.0-p451',
-  passenger_vers          => '4.0.40',
-  puppet_role             => 'catalog',
-  ca_server               => 'puppet-ca.domain.com',
-  catalog_cert_autosign   => true,
-  use_foreman_as_an_enc   => true,
-  foreman_url             => 'https://puppet-pm1.domain.com',
-  upload_facts_to_foreman => true,
-  report_to_foreman       => true,
-  foreman                 => false,
-  smartproxy              => true,
-  smartp_settings         => {
-    ':ssl_certificate' => '/var/lib/puppet/ssl/certs/puppet-pm2.domain.com.pem',
-    ':ssl_ca_file'     => '/var/lib/puppet/ssl/certs/ca.pem',
-    ':ssl_private_key' => '/var/lib/puppet/ssl/private_keys/puppet-pm2.domain.com.key',
-    ':trusted_hosts'   => ['puppet-pm1.domain.com', 'puppet-ca.domain.com'],
-    ':daemon'          => true,
-    ':port'            => '8443',
-    ':sudo_command'    => '/usr/local/rvm/bin/rvmsudo',
-    ':tftp'            => false,
-    ':dns'             => false,
-    ':puppetca'        => false, # This should be false for the catalog role
-    ':ssldir'          => '/var/lib/puppet/ssl',
-    ':puppetdir'       => '/etc/puppet',
-    ':puppet'          => true, # This needs to be true for the aio, and catalog roles
-    ':chefproxy'       => false,
-    ':bmc'             => false,
-    ':log_file'        => '/usr/share/smartproxy/smart-proxy/log/app.log',
-    ':log_level'       => 'ERROR'
-  }
-}
-```
+
 You can even use this module to install just the Foreman and/or smart-proxy. In this case, the default location values for the SSL certificates are assumed to be in /etc/puppet/ssl and not in /var/lib/puppet/ssl. This is because it's presumed that the node is a client rather than some sort of Puppet Master. If this is not true for you, you must manually specify the location of the SSL certificates using the {foreman,smartp}_ssl_* parameters.
 
 ```puppet
@@ -337,9 +366,19 @@ class { 'puppet_stack':
 }
 ```
 
+You can use this module to scale out your Puppet infrastructure, but explaining how to do so is out of the scope of this document. However, here are some things to consider:
+
+* How many servers do you plan to use? And how you will split them up (ex: 2 catalog servers, 1 CA)?
+* How will you distribute the load (ex: HAProxy, appliance-based solution)?
+* How will you keep your manifests and module in sync across your catalog masters (ex: GlusterFS, rsync)?
+* Will you be using an ENC (ex: the Foreman, PuppetDB)?
+
+For more information on this topic, see this [page](https://docs.puppetlabs.com/guides/scaling_multiple_masters.html).
+
 ###Sample Define Configurations
 
-#### puppet_stack::puppet::environment
+####puppet_stack::puppet::environment
+
 As of Puppet 3.5, there are currently two types of environments in Puppet:
 
 * [Config-file environments](http://docs.puppetlabs.com/puppet/3.5/reference/environments_classic.html)
@@ -385,7 +424,7 @@ The end result of these two resources would be the following directory tree unde
   ...
 ```
 
-In Puppet 3.4.x directory environments don't exist. There are however [dynamic environments](#http://docs.puppetlabs.com/puppet/3.5/reference/environments_classic.html#dynamic-environments), which are similar. To use dynamic environments with this module, you need to specify the following in your puppet.conf file:
+In Puppet 3.4.x directory environments don't exist. There are however [dynamic environments](http://docs.puppetlabs.com/puppet/3.5/reference/environments_classic.html#dynamic-environments), which are similar. To use dynamic environments with this module, you need to specify the following in your puppet.conf file:
 
 ```ini
 [master]
@@ -448,6 +487,35 @@ Be aware that by default, directory environments:
 
 * use [directory-as-manifest type behaviour](http://docs.puppetlabs.com/puppet/3.5/reference/dirs_manifest.html#directory-behavior-vs-single-file), so an environment's manifests directory should be filled with individual *.pp files; one for each of your Puppet clients. Unless you're using an ENC like the Foreman.
 * [will effectively disable all config-file environments](http://docs.puppetlabs.com/puppet/3.5/reference/environments_classic.html#no-interaction-with-directory-environments).
+
+####puppet_stack::smartproxy::config_file
+
+As of smart-proxy 1.6, the configurations for each of smart-proxy's modules have been broken out into their own file (inside config/settings.d). This define type allows you to configure each one individually. By default, all configuration files will be placed on disk, but will be disabled until specified otherwise. 
+
+You MUST set the title for each resource to one of the following values:
+
+* bmc.yml
+* chef.yml
+* dhcp.yml
+* dns.yml
+* puppetca.yml
+* puppet.yml
+* realm.yml
+* tftp.yml
+
+```puppet
+  puppet_stack::smartproxy::config_file { 'puppetca.yml':
+   content => {
+     ':enabled'           => true,
+     ':ssldir'            => '/var/lib/puppet/ssl',
+     ':puppetdir'         => '/etc/puppet',
+     ':puppetca_use_sudo' => true,
+     ':sudo_command'      => '/usr/local/rvm/bin/rvmsudo',
+   }
+```
+It will be up to to you to ensure you don't specify anything illegal in the content attribute. A list of available options for each file can be found in [smart-proxy's documentation](http://theforeman.org/manuals/1.6/index.html#4.3.2SmartProxySettings).
+
+If you specify an older version of smart-proxy (ex: 1.5), you will need to use the [smartp_settings](#smartp_settings) parameter to specify all options.
 
 ##Parameters
 
@@ -541,6 +609,31 @@ An array of [Puppet autosign](http://docs.puppetlabs.com/puppet/3.5/reference/ss
 
 ####`site_pp_entries`
 An array of entries to put into the default site manifest, /etc/puppet/manifests/site.pp (defaults to ['node default {}']). It's often common to put import statements in this file, but be aware that as of Puppet 3.5 import statements are [deprecated](http://docs.puppetlabs.com/puppet/3.5/reference/lang_import.html).
+
+####`auth_conf_entries`
+A string to specify any extra auth.conf entries (defaults to an empty string). Documentation for auth.conf can be found [here](https://docs.puppetlabs.com/guides/rest_auth_conf.html).
+
+```puppet
+class { 'puppet_stack':
+  ruby_vers         => 'ruby-2.0.0-p451',
+  passenger_vers    => '4.0.40',
+  ...
+  auth_conf_entries => '
+# This is a comment
+
+path /facts
+method find, search
+auth yes
+allow custominventory.site.net, devworkstation.site.net
+
+# An exception allowing one authenticated workstation to access any endpoint
+
+path /
+auth yes
+allow devworkstation.site.net',
+  ...
+}
+```
 
 ####`catalog_cert_autosign`
 If true (defaults to false), a catalog master will attempt to fetch its certificate from the specified CA server. For this to work an autosign entry for the Puppet Catalog Master needs to exist on the CA server (see the advanced example in the usage section).
@@ -714,7 +807,14 @@ What the [master] section of puppet.conf will look like afterwards:
 If true (defaults to false), will configure the Foreman.
 
 ####`foreman_repo`
-The git repository from which to clone the Foreman. Defaults to the 1.6-stable branch (https://github.com/theforeman/foreman.git -b 1.6-stable).
+A hash specifying the git repository from which to clone the Foreman. It also can accept a tag key to checkout a specific version/commit. Defaults to the 1.6.1 tag of the 1.6-stable branch.
+
+```ruby
+{ 
+  'url' => 'https://github.com/theforeman/foreman.git -b 1.6-stable',
+  'tag' => '1.6.1',
+}
+```
 
 ####`foreman_user`
 The user that Passenger will run the Foreman under (defaults to foreman).
@@ -729,6 +829,7 @@ The application directory for the Foreman (defaults to ${foreman_user_home}/fore
 A hash of configuration options that will be put into the Foreman's config/settings.yaml file. Defaults settings are:
 
 ```ruby
+# From manifests/params.pp
 $foreman_settings = {
   ':unattended'            => false,
   ':login'                 => true,
@@ -744,7 +845,7 @@ As you can see, the Foreman is set just to be an ENC by default (:unattended => 
 ```puppet
 class { 'puppet_stack':
   ...
-  $foreman_settings => {
+  foreman_settings => {
     ':unattended'                 => false,
     ':login'                      => true,
     ':require_ssl'                => true,
@@ -790,6 +891,7 @@ The password for the foreman_db_user (defaults to undef). This must be set if fo
 An array of values that will be used to generate the Foreman's config/database.yml file. Defaults to the following values:
 
 ```puppet
+# From manifests/foreman.pp
 # Shown for brevity & completeness
 $test = [ 'test',
           { 'adapter'  => 'sqlite3',
@@ -885,7 +987,14 @@ The SSL ca file that the Foreman will use. This value defaults to the one that P
 If false (defaults to true), will prevent smart-proxy from being configured.
 
 ####`smartp_repo`
-The git repository from which to clone smart-proxy. Defaults to the 1.6-stable branch (https://github.com/theforeman/smart-proxy.git -b 1.6-stable).
+A hash specifying the git repository from which to clone smart-proxy. It also can accept a tag key to checkout a specific version/commit. Defaults to the 1.6.1 tag of the 1.6-stable branch.
+
+```ruby
+{ 
+  'url' => 'https://github.com/theforeman/smart-proxy.git -b 1.6-stable',
+  'tag' => '1.6.1',
+}
+```
 
 ####`smartp_user`
 The user that Passenger will run smart-proxy under (defaults to smartproxy).
@@ -903,31 +1012,51 @@ The application directory for smart-proxy (defaults to ${smartp_user_home}/smart
 The log file for the smart-proxy application (defaults to smart-proxy/log/app.log). If you change the value for this parameter you must ensure the directory where it resides in exists. Otherwise smart-proxy will fail to start.
 
 ####`smartp_settings`
-A hash of configuration options that will be put into smart-proxy's config/settings.yml file. The default settings are:
+A hash of configuration options that will be put into smart-proxy's config/settings.yml file. If you override a single value, you will need to specify everything (and be sure to prepend your keys with ':'). The default settings are for smart-proxy 1.6.
 
 ```puppet
+# From manifests/smartproxy.pp
 $smartp_settings = {
   ':ssl_certificate' => $smartp_ssl_cert,
   ':ssl_private_key' => $smartp_ssl_key,
   ':ssl_ca_file'     => $smartp_ssl_ca,
   ':trusted_hosts'   => [ $::fqdn ],
-  # sudo_command must be specified, and set to RVM's rvmsudo script
-  ':sudo_command'    => "${rvm_prefix}/bin/rvmsudo",
   ':daemon'          => true,
-  ':port'            => $smartp_port,
-  ':tftp'            => false,
-  ':dns'             => false,
-  ':puppetca'        => $puppetca,
-  ':ssldir'          => '/var/lib/puppet/ssl',
-  ':puppetdir'       => '/etc/puppet',
-  ':puppet'          => $puppet,
-  ':chefproxy'       => false,
-  ':bmc'             => false,
+  ':https_port'      => $smartp_port,
   ':log_file'        => $smartp_log_file,
   ':log_level'       => 'ERROR'
 }
 ```
-If you specify your own settings, be sure to prepend your keys with ':'.
+
+You will NEED to set this parameter manually to something like below if you plan on using smart-proxy 1.5 (you cannot use anything lower, see [Additional Notes](#additional-notes)).
+
+```puppet
+class { 'puppet_stack':
+  ...
+  # An example ONLY for smart-proxy 1.5
+  smartp_settings => {
+    ':ssl_certificate' => '/var/lib/puppet/ssl/certs/puppet3.domain.com',
+    ':ssl_private_key' => '/var/lib/puppet/ssl/private_keys/puppet3.domain.com.pem',
+    ':ssl_ca_file'     => '/var/lib/puppet/ssl/ca/ca_crt.pem',
+    ':trusted_hosts'   => [ $::fqdn ],
+    # sudo_command must be specified, and set to RVM's rvmsudo script
+    ':sudo_command'    => '/usr/local/rvm/bin/rvmsudo',
+    ':daemon'          => true,
+    ':port'            => '8443',
+    ':tftp'            => false,
+    ':dns'             => false,
+    ':puppetca'        => true, # or false if you're deploying a Puppet Catalog server
+    ':ssldir'          => '/var/lib/puppet/ssl',
+    ':puppetdir'       => '/etc/puppet',
+    ':puppet'          => true, # or false if you're deploying a Puppet CA server
+    ':chefproxy'       => false,
+    ':bmc'             => false,
+    ':log_file'        => '/usr/share/smartproxy/smart-proxy/log/app.log',
+    ':log_level'       => 'ERROR'
+  },
+  ...
+}
+```
 
 ####`smartp_vhost_options`
 The vhost options that you want to apply to smart-proxy (defaults to an empty hash, which means none). Values specified will be put into the /etc/{http/apache2}/conf.d/smart-proxy.conf file. For an example of how to specify options, please refer to global_passenger_options.
@@ -947,7 +1076,7 @@ The SSL ca file that smart-proxy will use. This value defaults to the one that P
 ###Define Type: puppet_stack::puppet::environment
 
 ####`ensure`
-The state of the directory environment. Acceptable values are present and absent. WARNING, if you set this to absent, it will forcibly remove all files/folders in an environment (i.e. modules and manifests).
+The state of the directory environment. Acceptable values are 'present' and 'absent'. WARNING, if you set this to absent, it will forcibly remove all files/folders in an environment (i.e. modules and manifests).
 
 ####`env_name`
 The name of the directory environment (defaults to the title of the resource). This value will be scrutinized to ensure it conforms to an [acceptable environment name](http://docs.puppetlabs.com/puppet/3.5/reference/environments.html#allowed-names).
@@ -961,13 +1090,39 @@ The group of the directory environment folders (defaults to puppet).
 ####`mode`
 The mode of the directory environment folders (defaults to 0755).
 
+###Define Type: puppet_stack::smartproxy::config_file
+
+####`content`
+A hash containing the options to specify in the configuration file. Defaults to:
+
+```ruby
+{ ':enabled' => false }
+```
+
+####`path`
+A string containing the path of where to place the configuration file (defaults to "${::puppet_stack::smartproxy::smartp_app_dir}/config/settings.d"). 
+
+####`owner`
+A string specifying which user should be the owner of the configuration file (defaults to smartproxy).
+
+####`group`
+A string specifying which group should be set for the configuration file (defaults to smartproxy).
+
+####`mode`
+A string specifying the mode for the configuration file (defaults to 0444).
 
 ##Additional Notes
+
 * The lowest smartproxy version you can use is 1.5. This is because it contains 2 important patches. The first allows you to specify which sudo command to use [1](https://github.com/theforeman/smart-proxy/commit/3824d182ed364cbc844138e4d107c9336fd4c756), and the second allows for trusted_hosts to be specified when using Passenger [2](https://github.com/theforeman/smart-proxy/commit/04148e799c23d7b2024dfb812d04f803f80449da).
 
-* There are seams in this module for the Apache and Postgresql dependencies that enable you to customize each installation. For example, you could specify the following if you did not want the Apache module to install the default Apache modules and conf.d files:
+* There are several seams in this module for the: Apache, Postgresql, /etc/puppet, and /var/lib/puppet resources that allow you to override them. For example, you could specify the following if you did not want the Apache module to install the default Apache modules and conf.d files, and you wanted /etc/puppet to be a symlink:
+
 ```puppet
-  # For good measure, declare any overrides BEFORE the puppet_stack resource
+  # You MUST declare any overrides BEFORE the puppet_stack resource
+  file { '/etc/puppet': 
+    ensure => 'symlink',
+    target => '/some/target',
+  }
   class { 'apache':
     default_mods        => false,
     default_confd_files => false,
@@ -979,7 +1134,8 @@ The mode of the directory environment folders (defaults to 0755).
     ...
   }
 ```
-* This module does not manage any type of firewall. You will need to open up the appropriate ports yourself. The ports, if left at their default values, are: 443, 8140, and 8443.
+
+* This module does not manage any type of firewall. You will need to open up the appropriate ports yourself. The ports, if left at their default values, are: 443 (Foreman), 8140 (Puppet), and 8443 (smart-proxy).
 
 * Some exec resources may take a long time to finish depending on your Internet connection. Therefore certain exec resources have had their timeout attribute increased to 30 minutes. Don't be worried if your first Puppet run seems to be stalled.
 
@@ -1134,25 +1290,6 @@ class { 'puppet_stack':
   foreman_db_adapter       => 'postgresql',
   foreman_db_password      => 'suchsecurity',
   smartproxy               => true,
-  smartp_settings          => {
-    ':ssl_certificate' => '/var/lib/puppet/ssl/certs/fqdn.pem',
-    ':ssl_ca_file'     => '/var/lib/puppet/ssl/certs/ca.pem',
-    ':ssl_private_key' => '/var/lib/puppet/ssl/private_keys/fqdn.key',
-    ':trusted_hosts'   => [ 'hostname.domain.com' ],
-    ':daemon'          => true,
-    ':port'            => '8443',
-    ':sudo_command'    => '/usr/local/rvm/bin/rvmsudo',
-    ':tftp'            => false,
-    ':dns'             => false,
-    ':puppetca'        => true,
-    ':ssldir'          => '/var/lib/puppet/ssl',
-    ':puppetdir'       => '/etc/puppet',
-    ':puppet'          => true,
-    ':chefproxy'       => false,
-    ':bmc'             => false,
-    ':log_file'        => '/usr/share/smartproxy/smart-proxy/log/app.log',
-    ':log_level'       => 'ERROR'
-  }
 }
 ```
 
