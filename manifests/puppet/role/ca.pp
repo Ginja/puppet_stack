@@ -12,13 +12,6 @@ class puppet_stack::puppet::role::ca {
   $cert_sign_cmd  = "${puppet_cmd} cert sign --allow-dns-alt-names ${cert_name}"
   $cert_find_cmd  = "${puppet_cmd} certificate --ca-location=local find ${cert_name}"
 
-  file { '/etc/puppet':
-    ensure => 'directory',
-    owner  => 'root',
-    group  => 'root',
-    mode   => '0755',
-  }
-
   file { '/etc/puppet/puppet.conf':
     ensure  => 'file',
     owner   => 'root',
@@ -44,6 +37,7 @@ class puppet_stack::puppet::role::ca {
     group   => 'root',
     mode    => '0444',
     content => template('puppet_stack/puppet/auth.conf.erb'),
+    notify  => Exec['restart_puppet'],
     require => File['/etc/puppet'],
   }
 
@@ -82,14 +76,14 @@ class puppet_stack::puppet::role::ca {
     ensure => 'directory',
     owner  => 'puppet',
     group  => 'puppet',
-    mode   => '0770',
+    mode   => '0755',
     before => Exec['generate_ca_cert'],
   }
 
   exec { 'generate_ca_cert':
     command   => "${cert_clean_cmd} ; ${cert_gen_cmd} && ${cert_sign_cmd} && ${cert_find_cmd}",
     unless    => "/usr/bin/test -f `${puppet_cmd} config print ssldir`/certs/${cert_name}.pem",
-    logoutput => on_failure,
+    logoutput => 'on_failure',
     require   => File['/etc/puppet/puppet.conf'],
   }
 }

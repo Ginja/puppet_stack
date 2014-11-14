@@ -6,7 +6,7 @@
   ServerName               <%= @foreman_vhost_server_name %>
 
   SSLEngine On
-  SSLProtocol              All -SSLv2
+  SSLProtocol              All -SSLv2 -SSLv3
   SSLCipherSuite           HIGH:!ADH:RC4+RSA:-MEDIUM:-LOW:-EXP
   SSLCertificateFile       <%= @foreman_ssl_cert %>
   SSLCertificateKeyFile    <%= @foreman_ssl_key %>

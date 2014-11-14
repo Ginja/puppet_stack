@@ -11,7 +11,7 @@ describe 'puppet_stack', :type => 'class' do
         :rubyversion   => '2.0.0',
       }
     end
-    it { expect { should compile }.to raise_error(/module requires a Puppet version/) }
+    it { expect { should compile }.to raise_error(/module will only run on versions/) }
   end
 
   context "with ::rubyversion < 1.9.1" do
@@ -48,14 +48,16 @@ describe 'puppet_stack', :type => 'class' do
   end
 
   context "on a RedHat system" do
-    supported_puppet_versions = ['3.4.3', '3.5.1']
+    supported_puppet_versions = ['3.4.3', '3.5.1', '3.6.2']
+    supported_os_releases = ['6.5', '7.0']
     random_puppet_vers = supported_puppet_versions[rand(supported_puppet_versions.length - 1)]
+    random_os_vers = supported_os_releases[rand(supported_os_releases.length - 1)]
     let :facts do
       {
         :puppetversion          => random_puppet_vers,
         :rubyversion            => '2.0.0',
         :osfamily               => 'RedHat',
-        :operatingsystemrelease => '6',
+        :operatingsystemrelease => random_os_vers,
         :concat_basedir         => '/dne',
       }
     end
@@ -335,6 +337,24 @@ describe 'puppet_stack', :type => 'class' do
       it do
         expect { should compile }.to raise_error(/cannot be left undefined/)
       end
+    end
+    
+    context "with foreman => true, foreman_db_adapter => postgresql, foreman_db_host => 'localhost', foreman_db_password => set" do
+      let :params do
+        {
+          :ruby_vers           => 'ruby-2.0.0-p451',
+          :passenger_vers      => '4.0.40',
+          :puppet              => false,
+          :foreman             => true,
+          :foreman_db_adapter  => 'postgresql',
+          :foreman_db_host     => 'localhost',
+          :foreman_db_password => 'set',
+        }
+      end
+      it {
+           should compile.with_all_deps
+           should contain_rvm_gem('ruby-augeas')
+      }
     end
 
     context "with foreman => true, foreman_db_host => 'somehost.fqdn.com', foreman_db_password => set" do

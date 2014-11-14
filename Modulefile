@@ -1,5 +1,5 @@
 name    'Ginja-puppet_stack'
-version '1.0.0'
+version '1.1.0'
 source 'git://github.com/Ginja/puppet_stack.git'
 author 'rshott'
 license 'Apache License, Version 2.0'

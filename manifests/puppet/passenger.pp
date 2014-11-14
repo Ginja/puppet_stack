@@ -56,6 +56,6 @@ class puppet_stack::puppet::passenger {
     command     => '/bin/touch tmp/restart.txt',
     cwd         => $puppet_passenger_app_root,
     refreshonly => true,
-    logoutput   => on_failure,
+    logoutput   => 'on_failure',
   }
 }

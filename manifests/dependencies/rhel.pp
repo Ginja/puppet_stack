@@ -17,7 +17,7 @@ class puppet_stack::dependencies::rhel {
   exec { 'yum_group_install':
     command   => 'yum -y groupinstall "Development tools"',
     path      => "${rvm_prefix}/bin:/usr/bin:/usr/sbin:/bin",
-    unless    => 'yum grouplist "Development tools" | grep "^Installed Groups"',
+    unless    => 'yum grouplist "Development tools" | grep "^Installed"',
     timeout   => '1800',
     logoutput => 'on_failure',
     before    => Exec['install_apache_passenger_module'],
@@ -27,14 +27,25 @@ class puppet_stack::dependencies::rhel {
     ensure => present,
     before => Exec['install_apache_passenger_module'],
   }
+  
+  # Needed for Postgresql module, but requires augeas-devel
+  if ($::puppet_stack::foreman == true)
+  and ($::puppet_stack::foreman_db_adapter == 'postgresql')
+  and ($::puppet_stack::foreman_db_host == 'localhost') {
+    rvm_gem { 'ruby-augeas':
+      ensure       => $::puppet_stack::augeas_vers,
+      ruby_version => $::puppet_stack::ruby_vers,
+      require      => Package[$packages],
+    }
+  }
 
   exec { 'install_apache_passenger_module':
     command     => "rvm ${ruby_vers} exec ${passenger_mod} --auto --languages ruby",
     path        => "${rvm_prefix}/bin:${rvm_prefix}/gems/${ruby_vers}/bin:/usr/bin:/usr/sbin:/bin",
     unless      => "find ${gempath}/passenger-${passenger_vers} -iname ${mod_so} -print | grep ${mod_so}",
     environment => [ 'HOME=/root', ],
-    timeout     => 1800,
-    logoutput   => on_failure,
+    timeout     => '1800',
+    logoutput   => 'on_failure',
     require     => Rvm_system_ruby[$::puppet_stack::ruby_vers],
   }
 
