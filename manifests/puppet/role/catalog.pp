@@ -9,19 +9,13 @@ class puppet_stack::puppet::role::catalog {
   $use_foreman_as_an_enc   = $::puppet_stack::use_foreman_as_an_enc
   $catalog_cert_autosign   = $::puppet_stack::catalog_cert_autosign
   $cert_name               = $::puppet_stack::cert_name
-
-  file { '/etc/puppet':
-    ensure => 'directory',
-    owner  => 'root',
-    group  => 'root',
-    mode   => '0755',
-  }
   
+  # Puppet needs permission to create a production environment folder
   file { '/etc/puppet/environments': 
     ensure  => 'directory',
     owner   => 'root',
     group   => 'puppet',
-    mode    => '0755',
+    mode    => '0775',
     require => File['/etc/puppet'],
   }
 
@@ -41,6 +35,7 @@ class puppet_stack::puppet::role::catalog {
     group   => 'root',
     mode    => '0444',
     content => template('puppet_stack/puppet/auth.conf.erb'),
+    notify  => Exec['restart_puppet'],
     require => File['/etc/puppet'],
   }
 
@@ -75,7 +70,7 @@ class puppet_stack::puppet::role::catalog {
       owner   => 'root',
       group   => 'root',
       mode    => '0555',
-      content => template('puppet_stack/foreman/node.rb.erb'),
+      source  => 'puppet:///modules/puppet_stack/foreman/node.rb',
       require => File['/etc/puppet'],
     }
   }
@@ -86,7 +81,19 @@ class puppet_stack::puppet::role::catalog {
       owner   => 'root',
       group   => 'root',
       mode    => '0555',
-      content => template('puppet_stack/foreman/foreman.rb.erb'),
+      source  => 'puppet:///modules/puppet_stack/foreman/foreman.rb',
+      require => File['/etc/puppet'],
+    }
+  }
+  
+  if ($report_to_foreman == true)
+  or ($use_foreman_as_an_enc == true) {
+    file { '/etc/puppet/foreman.yaml':
+      ensure  => 'file',
+      owner   => 'root',
+      group   => 'root',
+      mode    => '0555',
+      content => template('puppet_stack/foreman/foreman.yaml.erb'),
       require => File['/etc/puppet'],
     }
   }

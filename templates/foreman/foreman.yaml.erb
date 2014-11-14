@@ -1,0 +1,26 @@
+---
+<%- @foreman_ssl_ca == '' ? ssl_ca = @puppet_ssl_ca : ssl_ca = @foreman_ssl_ca -%>
+<%- @foreman_ssl_cert == '' ? ssl_cert = @puppet_ssl_cert : ssl_cert = @foreman_ssl_cert -%>
+<%- @foreman_ssl_key == '' ? ssl_key = @puppet_ssl_key : ssl_key = @foreman_ssl_key -%>
+#####################
+# MANAGED BY PUPPET #
+#####################
+
+# The values in this file are used in the following files (if they exist):
+# <%= @rvm_ruby_root -%>/gems/puppet-<%= scope['::puppetversion'] -%>/lib/puppet/reports/foreman.rb
+# /etc/puppet/node.rb
+
+# Original copy
+# https://github.com/theforeman/puppet-foreman/blob/master/templates/puppet.yaml.erb
+
+:url: "<%= @foreman_url %>"
+:ssl_ca: "<%= ssl_ca %>"
+:ssl_cert: "<%= ssl_cert %>"
+:ssl_key: "<%= ssl_key %>"
+#:user: "<%= @foreman_user %>"
+#:password: "<%= @foreman_password %>"
+:puppetdir: "<%= @puppet_vardir %>"
+:puppetuser: 'puppet'
+:facts: <%= @upload_facts_to_foreman %>
+:timeout: 10
+:threads: null

@@ -13,19 +13,13 @@ class puppet_stack::puppet::role::aio {
   $cert_gen_cmd          = "${puppet_cmd} certificate --ca-location=local --dns_alt_names=puppet generate ${cert_name}"
   $cert_sign_cmd         = "${puppet_cmd} cert sign --allow-dns-alt-names ${cert_name}"
   $cert_find_cmd         = "${puppet_cmd} certificate --ca-location=local find ${cert_name}"
-
-  file { '/etc/puppet':
-    ensure => 'directory',
-    owner  => 'root',
-    group  => 'root',
-    mode   => '0755',
-  }
   
+  # Puppet needs permission to create a production environment folder
   file { '/etc/puppet/environments': 
     ensure  => 'directory',
     owner   => 'root',
     group   => 'puppet',
-    mode    => '0755',
+    mode    => '0775',
     require => File['/etc/puppet'],
   }
 
@@ -54,6 +48,7 @@ class puppet_stack::puppet::role::aio {
     group   => 'root',
     mode    => '0444',
     content => template('puppet_stack/puppet/auth.conf.erb'),
+    notify  => Exec['restart_puppet'],
     require => File['/etc/puppet'],
   }
 
@@ -88,7 +83,7 @@ class puppet_stack::puppet::role::aio {
       owner   => 'root',
       group   => 'root',
       mode    => '0555',
-      content => template('puppet_stack/foreman/node.rb.erb'),
+      source  => 'puppet:///modules/puppet_stack/foreman/node.rb',
       require => File['/etc/puppet'],
     }
   }
@@ -99,7 +94,19 @@ class puppet_stack::puppet::role::aio {
       owner   => 'root',
       group   => 'root',
       mode    => '0555',
-      content => template('puppet_stack/foreman/foreman.rb.erb'),
+      source  => 'puppet:///modules/puppet_stack/foreman/foreman.rb',
+      require => File['/etc/puppet'],
+    }
+  }
+  
+  if ($report_to_foreman == true)
+  or ($use_foreman_as_an_enc == true) {
+    file { '/etc/puppet/foreman.yaml':
+      ensure  => 'file',
+      owner   => 'root',
+      group   => 'root',
+      mode    => '0555',
+      content => template('puppet_stack/foreman/foreman.yaml.erb'),
       require => File['/etc/puppet'],
     }
   }
@@ -130,7 +137,7 @@ class puppet_stack::puppet::role::aio {
   exec { 'generate_ca_cert':
     command   => "${cert_clean_cmd} ; ${cert_gen_cmd} && ${cert_sign_cmd} && ${cert_find_cmd}",
     unless    => "/usr/bin/test -f `${puppet_cmd} config print ssldir`/certs/${cert_name}.pem",
-    logoutput => on_failure,
+    logoutput => 'on_failure',
     require   => File['/etc/puppet/puppet.conf'],
   }
 }

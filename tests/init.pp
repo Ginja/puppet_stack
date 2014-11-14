@@ -8,4 +8,7 @@
 #
 # Learn more about module testing here: http://docs.puppetlabs.com/guides/tests_smoke.html
 #
-include puppet_stack
+class { 'puppet_stack':
+  ruby_vers      => 'ruby-2.0.0-p481',
+  passenger_vers => '4.0.40',
+}

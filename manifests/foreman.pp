@@ -66,7 +66,7 @@ class puppet_stack::foreman {
             'host'     => $foreman_db_host, 
             'database' => $foreman_db_name, 
             'pool'     => $foreman_db_pool, 
-            'timeout'  => $forman_db_timeout, 
+            'timeout'  => $foreman_db_timeout, 
             'username' => $foreman_db_user, 
             'password' => $foreman_db_password } 
         ]
@@ -78,15 +78,15 @@ class puppet_stack::foreman {
   }
 
   if ($foreman_db_host == 'localhost')
-  and ($foreman_db_adapter == 'postgresql') {
-      class { 'puppet_stack::foreman::base': }
-      -> class { "puppet_stack::foreman::database::${db}": }
-      -> class { 'puppet_stack::foreman::rake': }
-      -> class { 'puppet_stack::foreman::passenger': }
-      contain 'puppet_stack::foreman::base'
-      contain "puppet_stack::foreman::database::${db}"
-      contain 'puppet_stack::foreman::rake'
-      contain 'puppet_stack::foreman::passenger'
+  and ($db == 'postgresql') {
+    class { 'puppet_stack::foreman::base': }
+    -> class { "puppet_stack::foreman::database::${db}": }
+    -> class { 'puppet_stack::foreman::rake': }
+    -> class { 'puppet_stack::foreman::passenger': }
+    contain 'puppet_stack::foreman::base'
+    contain "puppet_stack::foreman::database::${db}"
+    contain 'puppet_stack::foreman::rake'
+    contain 'puppet_stack::foreman::passenger'
   }
   else {
     class { 'puppet_stack::foreman::base': }

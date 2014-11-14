@@ -4,6 +4,9 @@ class puppet_stack::foreman::database::postgresql {
   $foreman_db_password = $::puppet_stack::foreman_db_password
   $foreman_db_host     = $::puppet_stack::foreman_db_host
 
+  unless defined(Class['postgresql::server']) {
+    class { 'postgresql::server': }
+  }
   contain postgresql::server
 
   postgresql::server::db { $foreman_db_name:

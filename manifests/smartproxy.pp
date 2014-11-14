@@ -45,22 +45,25 @@ class puppet_stack::smartproxy {
     $smartp_ssl_ca= $::puppet_stack::smartp_ssl_ca
   }
   if ($::puppet_stack::smartp_settings == {}) {
+    # The commented out portions are what is needed for smart-proxy <= 1.5,
+    # but we're now defaulting to => 1.6
     $smartp_settings = {
       ':ssl_certificate' => $smartp_ssl_cert,
       ':ssl_private_key' => $smartp_ssl_key,
       ':ssl_ca_file'     => $smartp_ssl_ca,
       ':trusted_hosts'   => [ $::fqdn ],
-      ':sudo_command'    => "${rvm_prefix}/bin/rvmsudo",
+      #':sudo_command'    => "${rvm_prefix}/bin/rvmsudo",
       ':daemon'          => true,
-      ':port'            => $smartp_port,
-      ':tftp'            => false,
-      ':dns'             => false,
-      ':puppetca'        => $puppetca,
-      ':ssldir'          => "${puppet_vardir}/ssl",
-      ':puppetdir'       => '/etc/puppet',
-      ':puppet'          => $puppet,
-      ':chefproxy'       => false,
-      ':bmc'             => false,
+      #':port'            => $smartp_port,
+      ':https_port'      => $smartp_port,
+      #':tftp'            => false,
+      #':dns'             => false,
+      #':puppetca'        => $puppetca,
+      #':ssldir'          => "${puppet_vardir}/ssl",
+      #':puppetdir'       => '/etc/puppet',
+      #':puppet'          => $puppet,
+      #':chefproxy'       => false,
+      #':bmc'             => false,
       ':log_file'        => $smartp_log_file,
       ':log_level'       => 'ERROR'
     }
@@ -70,7 +73,9 @@ class puppet_stack::smartproxy {
   }
 
   class { 'puppet_stack::smartproxy::base': }
+  -> class { 'puppet_stack::smartproxy::settings': }
   -> class { 'puppet_stack::smartproxy::passenger': }
   contain 'puppet_stack::smartproxy::base'
+  contain 'puppet_stack::smartproxy::settings'
   contain 'puppet_stack::smartproxy::passenger'
 }

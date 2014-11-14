@@ -57,12 +57,23 @@ class puppet_stack::dependencies::generic {
         }
     }
     
-    file { $puppet_vardir: 
-      ensure  => 'directory',
-      owner   => 'puppet',
-      group   => 'puppet',
-      mode    => '0755',
-      require => User['puppet'],
+    unless defined(File['/etc/puppet']) {
+      file { '/etc/puppet':
+        ensure => 'directory',
+        owner  => 'root',
+        group  => 'root',
+        mode   => '0755',
+      }
+    }
+    
+    unless defined(File[$puppet_vardir]) {
+      file { $puppet_vardir: 
+        ensure  => 'directory',
+        owner   => 'puppet',
+        group   => 'puppet',
+        mode    => '0755',
+        require => User['puppet'],
+      }
     }
 
     unless defined(Apache::Listen['8140']) {
