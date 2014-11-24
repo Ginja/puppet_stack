@@ -22,7 +22,7 @@ class puppet_stack::foreman::base {
     creates   => $foreman_app_dir,
   }
   
-  unless ($foreman_repo[tag] == false) {
+  if has_key($foreman_repo, 'tag') {
     exec { 'foreman_checkout_version':
       command     => "/usr/bin/git checkout -b ${foreman_repo[tag]}-checkout ${foreman_repo[tag]}",
       user        => $::puppet_stack::foreman_user,

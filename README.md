@@ -52,11 +52,12 @@ Other reasons are:
 ##Requirements
 Before you use this module, you'll require a machine with the following:
 
-* [System-wide RVM installation](https://rvm.io/):
+* [Multi-User RVM installation](https://rvm.io/rvm/install#installation):
 ```bash
+sudo gpg --keyserver hkp://keys.gnupg.net --recv-keys D39DC0E3
 curl -sSL https://get.rvm.io | sudo bash -s stable
 ```
-* An RVM Ruby installation (> 1.8.{6,7}), which has been set as the system default:
+* An RVM Ruby installation (> 1.8.7), which has been set as the system default:
 ```bash
 rvm install ruby-2.0.0
 rvm alias create default ruby-2.0.0
@@ -436,19 +437,20 @@ In Puppet 3.4.x directory environments don't exist. There are however [dynamic e
 An example of how to do this:
 
 ```puppet
-  class { 'puppet_stack':
-    ruby_vers      => 'ruby-2.0.0-p451',
-    passenger_vers => '4.0.40',
-    puppet_role    => 'aio',
-    conf_master    => {
-      'manifest'   => '$confdir/environments/$environment/manifests',
-      'modulepath' => '$confdir/environments/$environment/modules',
-      'ca'         => true,
-      'autosign'   => '/etc/puppet/autosign.conf',
-      'reports'    => 'log',
-    }
-    foreman        => false,
-    smartproxy     => false,
+class { 'puppet_stack':
+  ruby_vers      => 'ruby-2.0.0-p451',
+  passenger_vers => '4.0.40',
+  puppet_role    => 'aio',
+  conf_master    => {
+    'manifest'   => '$confdir/environments/$environment/manifests',
+    'modulepath' => '$confdir/environments/$environment/modules',
+    'ca'         => true,
+    'autosign'   => '/etc/puppet/autosign.conf',
+    'reports'    => 'log',
+  }
+  foreman        => false,
+  smartproxy     => false,
+}
 ```
 
 Once this is set, you can use puppet_stack::puppet::environment to place dynamic environments.
@@ -464,21 +466,22 @@ Directory environments in Puppet 3.5.1 and later are [disabled by default](http:
 An example of how to do this:
 
 ```puppet
-  class { 'puppet_stack':
-    ruby_vers      => 'ruby-2.0.0-p451',
-    passenger_vers => '4.0.40',
-    puppet_role    => 'aio',
-    conf_main      => {
-      'ssldir'          => '$vardir/ssl',
-      'logdir'          => '/var/log/puppet',
-      'privatekeydir'   => '$ssldir/private_keys { group = service }',
-      'hostprivkey'     => '$privatekeydir/$certname.pem { mode = 640 }',
-      'server'          => 'hostname.domain.com',
-      'certname'        => 'hostname.domain.com',
-      'environmentpath' => '$confdir/environments',
-    }
-    foreman        => false,
-    smartproxy     => false,
+class { 'puppet_stack':
+  ruby_vers      => 'ruby-2.0.0-p451',
+  passenger_vers => '4.0.40',
+  puppet_role    => 'aio',
+  conf_main      => {
+    'ssldir'          => '$vardir/ssl',
+    'logdir'          => '/var/log/puppet',
+    'privatekeydir'   => '$ssldir/private_keys { group = service }',
+    'hostprivkey'     => '$privatekeydir/$certname.pem { mode = 640 }',
+    'server'          => 'hostname.domain.com',
+    'certname'        => 'hostname.domain.com',
+    'environmentpath' => '$confdir/environments',
+  }
+  foreman        => false,
+  smartproxy     => false,
+}
 ```
 
 Once this is set, you can use puppet_stack::puppet::environment to place directory environments.
@@ -504,14 +507,15 @@ You MUST set the title for each resource to one of the following values:
 * tftp.yml
 
 ```puppet
-  puppet_stack::smartproxy::config_file { 'puppetca.yml':
-   content => {
-     ':enabled'           => true,
-     ':ssldir'            => '/var/lib/puppet/ssl',
-     ':puppetdir'         => '/etc/puppet',
-     ':puppetca_use_sudo' => true,
-     ':sudo_command'      => '/usr/local/rvm/bin/rvmsudo',
-   }
+puppet_stack::smartproxy::config_file { 'puppetca.yml':
+  content => {
+    ':enabled'           => true,
+    ':ssldir'            => '/var/lib/puppet/ssl',
+    ':puppetdir'         => '/etc/puppet',
+    ':puppetca_use_sudo' => true,
+    ':sudo_command'      => '/usr/local/rvm/bin/rvmsudo',
+  },
+}
 ```
 It will be up to to you to ensure you don't specify anything illegal in the content attribute. A list of available options for each file can be found in [smart-proxy's documentation](http://theforeman.org/manuals/1.6/index.html#4.3.2SmartProxySettings).
 
