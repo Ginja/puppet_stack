@@ -62,6 +62,10 @@ curl -sSL https://get.rvm.io | sudo bash -s stable
 rvm install ruby-2.0.0
 rvm alias create default ruby-2.0.0
 ```
+* Bundler installation for your RVM Ruby installation is required by the Puppet module:
+```bash
+gem install bundler
+```
 * Puppet Gem (3.4.0+) installation for your RVM Ruby installation:
 ```bash
 gem install puppet
